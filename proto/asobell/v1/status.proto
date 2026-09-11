@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+import "asobell/v1/common.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// ProviderStatusService は対になる Provider の状態を WebConsole に見せる(読み取り専用)。
+service ProviderStatusService {
+  // GetProviderStatus は Provider 未接続でもエラーにせず status OFFLINE を返す。
+  rpc GetProviderStatus(GetProviderStatusRequest) returns (GetProviderStatusResponse) {
+    option (google.api.http) = {get: "/api/v1/provider"};
+  }
+}
+
+enum ProviderStatus {
+  PROVIDER_STATUS_UNSPECIFIED = 0;
+  PROVIDER_STATUS_ONLINE = 1;
+  PROVIDER_STATUS_OFFLINE = 2;
+}
+
+message GetProviderStatusRequest {}
+
+message GetProviderStatusResponse {
+  // kind は一度も接続できていなければ UNSPECIFIED。
+  ProviderKind kind = 1;
+  string address = 2;
+  ProviderStatus status = 3;
+  bool connected = 4;
+  optional Capabilities capabilities = 5;
+  string version = 6;
+  string bot_user_id = 7;
+  repeated WorkspaceInfo workspaces = 8;
+  optional google.protobuf.Timestamp last_seen_at = 9;
+}

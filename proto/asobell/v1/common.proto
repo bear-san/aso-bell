@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// ProviderKind はチャットツールの種別。
+enum ProviderKind {
+  PROVIDER_KIND_UNSPECIFIED = 0;
+  PROVIDER_KIND_SLACK = 1;
+  PROVIDER_KIND_DISCORD = 2;
+}
+
+// WorkspaceRef は Manager 内部 ID とチャットツール上の ID の両方でワークスペースを指す。
+// Provider は external_id だけを解釈し、workspace_id は Manager への返却時にそのまま返す。
+message WorkspaceRef {
+  string workspace_id = 1;
+  string external_id = 2;
+}
+
+message WorkspaceInfo {
+  string external_id = 1;
+  string name = 2;
+}
+
+message ChannelInfo {
+  string id = 1;
+  string name = 2;
+  bool is_private = 3;
+  bool archived = 4;
+}
+
+message MessageRef {
+  string channel_id = 1;
+  string message_id = 2;
+}
+
+message UserInfo {
+  string id = 1;
+  string display_name = 2;
+  bool is_bot = 3;
+}
+
+enum ButtonStyle {
+  BUTTON_STYLE_UNSPECIFIED = 0;
+  BUTTON_STYLE_DEFAULT = 1;
+  BUTTON_STYLE_PRIMARY = 2;
+  BUTTON_STYLE_DANGER = 3;
+}
+
+message Button {
+  // action_id は "asobell:<action>:<eventId>" 形式。Slack の action_id / Discord の custom_id に載せる。
+  string action_id = 1;
+  string label = 2;
+  ButtonStyle style = 3;
+  bool disabled = 4;
+}
+
+message Field {
+  string label = 1;
+  string value = 2;
+}
+
+message Section {
+  string title = 1;
+  string body = 2;
+  repeated Field fields = 3;
+}
+
+// Message は Provider 非依存のメッセージ表現。本文は 06-provider.md §5.1 の軽量マークアップ。
+message Message {
+  string text = 1;
+  repeated Section sections = 2;
+  repeated Button buttons = 3;
+  // suppress_preview が true の場合、リンクプレビュー(Slack unfurl / Discord embed)を抑止する。
+  bool suppress_preview = 4;
+}
+
+enum FieldType {
+  FIELD_TYPE_UNSPECIFIED = 0;
+  FIELD_TYPE_TEXT = 1;
+  FIELD_TYPE_MULTILINE_TEXT = 2;
+  FIELD_TYPE_DATE = 3;
+  FIELD_TYPE_TIME = 4;
+  FIELD_TYPE_SELECT = 5;
+}
+
+message SelectOption {
+  string value = 1;
+  string label = 2;
+}
+
+message FormField {
+  string id = 1;
+  string label = 2;
+  FieldType type = 3;
+  bool required = 4;
+  string placeholder = 5;
+  string initial_value = 6;
+  int32 max_length = 7;
+  repeated SelectOption options = 8;
+  string hint = 9;
+}
+
+// Form は Provider がモーダル等として描画する入力フォーム。
+message Form {
+  string form_id = 1;
+  string title = 2;
+  string submit_label = 3;
+  repeated FormField fields = 4;
+  // metadata は送信時にそのまま FormSubmission.metadata として返される(呼び出し元チャンネル、イベント ID 等)。
+  string metadata = 5;
+}
+
+message Capabilities {
+  // forms: Form を描画できる(Slack モーダル)。
+  bool forms = 1;
+  // ephemeral: 本人にだけ見える返信ができる。
+  bool ephemeral = 2;
+  // direct_message: Bot からユーザーへ DM を送れる。
+  bool direct_message = 3;
+}

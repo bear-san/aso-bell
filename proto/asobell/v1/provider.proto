@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+import "asobell/v1/common.proto";
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// ProviderService は Provider が公開し、対になる 1 つの Manager が呼び出す。
+// すべての RPC は冪等に実装する(Manager 側のリトライとジョブ再実行に備える)。
+service ProviderService {
+  // GetInfo は Manager が起動時と定期的に呼び、種別・能力・接続状態を得る。
+  rpc GetInfo(GetInfoRequest) returns (GetInfoResponse);
+  // ListConnectedWorkspaces は Provider が現在把握しているワークスペースを返す。
+  rpc ListConnectedWorkspaces(ListConnectedWorkspacesRequest) returns (ListConnectedWorkspacesResponse);
+
+  rpc CreatePrivateChannel(CreatePrivateChannelRequest) returns (CreatePrivateChannelResponse);
+  rpc AddMember(AddMemberRequest) returns (AddMemberResponse);
+  rpc RemoveMember(RemoveMemberRequest) returns (RemoveMemberResponse);
+  // ArchiveChannel は Slack ではアーカイブ、Discord では "archived_" prefix へのリネームを行う。
+  rpc ArchiveChannel(ArchiveChannelRequest) returns (ArchiveChannelResponse);
+  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
+
+  rpc PostMessage(PostMessageRequest) returns (PostMessageResponse);
+  rpc UpdateMessage(UpdateMessageRequest) returns (UpdateMessageResponse);
+  // PostEphemeral は本人にだけ見えるメッセージを投稿する。ephemeral 非対応の Provider は DM で代替する。
+  rpc PostEphemeral(PostEphemeralRequest) returns (PostEphemeralResponse);
+  rpc SendDirectMessage(SendDirectMessageRequest) returns (SendDirectMessageResponse);
+  rpc PinMessage(PinMessageRequest) returns (PinMessageResponse);
+  rpc UnpinMessage(UnpinMessageRequest) returns (UnpinMessageResponse);
+
+  rpc ResolveUser(ResolveUserRequest) returns (ResolveUserResponse);
+}
+
+message GetInfoRequest {}
+
+message GetInfoResponse {
+  ProviderKind kind = 1;
+  Capabilities capabilities = 2;
+  string version = 3;
+  string bot_user_id = 4;
+  // connected はチャットツールへの接続が確立しているか。
+  bool connected = 5;
+}
+
+message ListConnectedWorkspacesRequest {}
+
+message ListConnectedWorkspacesResponse {
+  repeated WorkspaceInfo workspaces = 1;
+}
+
+message CreatePrivateChannelRequest {
+  WorkspaceRef workspace = 1;
+  // name は Manager 側で正規化済み。Provider は長さ・文字種の最終調整のみ行う。
+  string name = 2;
+  string topic = 3;
+  repeated string member_ids = 4;
+  // category_id は Discord のみ。空なら未指定。
+  string category_id = 5;
+}
+
+message CreatePrivateChannelResponse {
+  ChannelInfo channel = 1;
+}
+
+message AddMemberRequest {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  string user_id = 3;
+}
+
+message AddMemberResponse {
+  // already_member は既にメンバーだった場合 true(成功扱い)。
+  bool already_member = 1;
+}
+
+message RemoveMemberRequest {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  string user_id = 3;
+}
+
+message RemoveMemberResponse {
+  bool was_member = 1;
+}
+
+message ArchiveChannelRequest {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  // archive_category_id は Discord のみ。空なら移動しない。
+  string archive_category_id = 3;
+}
+
+message ArchiveChannelResponse {
+  ChannelInfo channel = 1;
+}
+
+message ListChannelsRequest {
+  WorkspaceRef workspace = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListChannelsResponse {
+  repeated ChannelInfo channels = 1;
+  string next_page_token = 2;
+}
+
+message PostMessageRequest {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  Message message = 3;
+}
+
+message PostMessageResponse {
+  MessageRef ref = 1;
+}
+
+message UpdateMessageRequest {
+  WorkspaceRef workspace = 1;
+  MessageRef ref = 2;
+  Message message = 3;
+}
+
+message UpdateMessageResponse {}
+
+message PostEphemeralRequest {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  string user_id = 3;
+  Message message = 4;
+}
+
+message PostEphemeralResponse {
+  // delivered_via_dm は ephemeral 非対応のため DM で送った場合 true。
+  bool delivered_via_dm = 1;
+}
+
+message SendDirectMessageRequest {
+  WorkspaceRef workspace = 1;
+  string user_id = 2;
+  Message message = 3;
+}
+
+message SendDirectMessageResponse {
+  MessageRef ref = 1;
+}
+
+message PinMessageRequest {
+  WorkspaceRef workspace = 1;
+  MessageRef ref = 2;
+}
+
+message PinMessageResponse {}
+
+message UnpinMessageRequest {
+  WorkspaceRef workspace = 1;
+  MessageRef ref = 2;
+}
+
+message UnpinMessageResponse {}
+
+message ResolveUserRequest {
+  WorkspaceRef workspace = 1;
+  string user_id = 2;
+}
+
+message ResolveUserResponse {
+  UserInfo user = 1;
+}

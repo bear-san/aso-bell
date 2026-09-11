@@ -1,0 +1,332 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// EventService は WebConsole 向けのイベント操作。grpc-gateway で /api/v1 配下の REST として公開する。
+// 認証はセッション Cookie(ゲートウェイが authorization メタデータへ変換)。
+service EventService {
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {get: "/api/v1/events"};
+  }
+  rpc GetEvent(GetEventRequest) returns (GetEventResponse) {
+    option (google.api.http) = {get: "/api/v1/events/{event_id}"};
+  }
+  // CreateEvent の主催者はログインユーザーの当該ワークスペースにおける連携済みチャット ID。
+  // 未連携なら FAILED_PRECONDITION(reason IDENTITY_REQUIRED)。
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/events"
+      body: "*"
+    };
+  }
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/events/{event_id}"
+      body: "*"
+    };
+  }
+  // EndEvent / CancelEvent は既に終了済みでもエラーにせず現在の状態を返す。
+  rpc EndEvent(EndEventRequest) returns (EndEventResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/events/{event_id}:end"
+      body: "*"
+    };
+  }
+  rpc CancelEvent(CancelEventRequest) returns (CancelEventResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/events/{event_id}:cancel"
+      body: "*"
+    };
+  }
+  rpc SetReminderPolicy(SetReminderPolicyRequest) returns (SetReminderPolicyResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/events/{event_id}/reminder-policy"
+      body: "reminder_policy"
+    };
+  }
+  rpc ListParticipants(ListParticipantsRequest) returns (ListParticipantsResponse) {
+    option (google.api.http) = {get: "/api/v1/events/{event_id}/participants"};
+  }
+  rpc RemoveParticipant(RemoveParticipantRequest) returns (RemoveParticipantResponse) {
+    option (google.api.http) = {delete: "/api/v1/events/{event_id}/participants/{chat_user_id}"};
+  }
+  rpc ListReminders(ListRemindersRequest) returns (ListRemindersResponse) {
+    option (google.api.http) = {get: "/api/v1/events/{event_id}/reminders"};
+  }
+  rpc SendReminderNow(SendReminderNowRequest) returns (SendReminderNowResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/events/{event_id}/reminders:send"
+      body: "*"
+    };
+  }
+}
+
+enum EventStatus {
+  EVENT_STATUS_UNSPECIFIED = 0;
+  EVENT_STATUS_OPEN = 1;
+  EVENT_STATUS_ENDED = 2;
+  EVENT_STATUS_CANCELED = 3;
+}
+
+enum EndReason {
+  END_REASON_UNSPECIFIED = 0;
+  END_REASON_MANUAL = 1;
+  END_REASON_AUTO = 2;
+  END_REASON_CANCELED = 3;
+  END_REASON_PROVISION_FAILED = 4;
+  END_REASON_CHANNEL_LOST = 5;
+}
+
+enum CreatedVia {
+  CREATED_VIA_UNSPECIFIED = 0;
+  CREATED_VIA_CHAT = 1;
+  CREATED_VIA_CONSOLE = 2;
+}
+
+message ChatUserRef {
+  string user_id = 1;
+  string display_name = 2;
+}
+
+message ChannelRef {
+  string channel_id = 1;
+  string name = 2;
+  bool archived = 3;
+}
+
+// ReminderPolicy はリマインドの投稿ペース。JSON では {"offsets": {...}} / {"interval": {...}} / {"none": {}} のいずれか。
+message ReminderPolicy {
+  oneof policy {
+    option (buf.validate.oneof).required = true;
+    OffsetsPolicy offsets = 1;
+    IntervalPolicy interval = 2;
+    NonePolicy none = 3;
+  }
+}
+
+// OffsetsPolicy は開始時刻の各 offset 前に 1 回ずつ投稿する。
+message OffsetsPolicy {
+  repeated google.protobuf.Duration offsets = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 30
+    items: {
+      duration: {gt: {seconds: 0}}
+    }
+  }];
+}
+
+// IntervalPolicy はワークスペース TZ の at 時刻に every 間隔で投稿し、最後に final_offset 前に 1 回投稿する。
+message IntervalPolicy {
+  google.protobuf.Duration every = 1 [(buf.validate.field).duration = {gte: {seconds: 3600}}];
+  // at は "HH:MM"。
+  string at = 2 [(buf.validate.field).string.pattern = "^([01][0-9]|2[0-3]):[0-5][0-9]$"];
+  google.protobuf.Duration final_offset = 3 [(buf.validate.field).duration = {gte: {seconds: 0}}];
+}
+
+message NonePolicy {}
+
+message Event {
+  string event_id = 1;
+  string workspace_id = 2;
+  string title = 3;
+  string description = 4;
+  optional string location = 5;
+  google.protobuf.Timestamp starts_at = 6;
+  optional google.protobuf.Timestamp ends_at = 7;
+  EventStatus status = 8;
+  ChatUserRef organizer = 9;
+  string origin_channel_id = 10;
+  optional ChannelRef channel = 11;
+  ReminderPolicy reminder_policy = 12;
+  int32 participant_count = 13;
+  optional google.protobuf.Timestamp ended_at = 14;
+  EndReason end_reason = 15;
+  CreatedVia created_via = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+message ListEventsRequest {
+  optional string workspace_id = 1;
+  EventStatus status = 2;
+  // mine が true なら、自分の連携済みチャット ID が主催または参加しているイベントに絞る。
+  bool mine = 3;
+  int32 page_size = 4 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+  string page_token = 5;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
+  string next_page_token = 2;
+}
+
+message GetEventRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message GetEventResponse {
+  Event event = 1;
+}
+
+message CreateEventRequest {
+  string workspace_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+  // origin_channel_id は立ち上げメッセージを投稿するチャンネル。
+  string origin_channel_id = 2 [(buf.validate.field).string.min_len = 1];
+  string title = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 80
+  }];
+  string description = 4 [(buf.validate.field).string.max_len = 1000];
+  optional string location = 5 [(buf.validate.field).string.max_len = 200];
+  google.protobuf.Timestamp starts_at = 6 [(buf.validate.field).required = true];
+  optional google.protobuf.Timestamp ends_at = 7;
+  // reminder_policy 省略時はワークスペースの既定を使う。
+  optional ReminderPolicy reminder_policy = 8;
+}
+
+message CreateEventResponse {
+  Event event = 1;
+}
+
+// UpdateEventRequest は設定されたフィールドのみ更新する(proto3 optional)。
+// location / ends_at を空にしたい場合は clear_location / clear_ends_at を true にする。
+message UpdateEventRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+  optional string title = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 80
+  }];
+  optional string description = 3 [(buf.validate.field).string.max_len = 1000];
+  optional string location = 4 [(buf.validate.field).string.max_len = 200];
+  bool clear_location = 5;
+  optional google.protobuf.Timestamp starts_at = 6;
+  optional google.protobuf.Timestamp ends_at = 7;
+  bool clear_ends_at = 8;
+}
+
+message UpdateEventResponse {
+  Event event = 1;
+}
+
+message EndEventRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message EndEventResponse {
+  Event event = 1;
+}
+
+message CancelEventRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message CancelEventResponse {
+  Event event = 1;
+}
+
+message SetReminderPolicyRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+  ReminderPolicy reminder_policy = 2 [(buf.validate.field).required = true];
+}
+
+message SetReminderPolicyResponse {
+  Event event = 1;
+}
+
+enum ParticipationRole {
+  PARTICIPATION_ROLE_UNSPECIFIED = 0;
+  PARTICIPATION_ROLE_PARTICIPANT = 1;
+  PARTICIPATION_ROLE_PEEKER = 2;
+}
+
+enum ParticipationStatus {
+  PARTICIPATION_STATUS_UNSPECIFIED = 0;
+  PARTICIPATION_STATUS_ACTIVE = 1;
+  PARTICIPATION_STATUS_EXPIRED = 2;
+  PARTICIPATION_STATUS_REMOVED = 3;
+  PARTICIPATION_STATUS_LEFT = 4;
+}
+
+message Participation {
+  string chat_user_id = 1;
+  string display_name = 2;
+  ParticipationRole role = 3;
+  ParticipationStatus status = 4;
+  google.protobuf.Timestamp joined_at = 5;
+  optional google.protobuf.Timestamp expires_at = 6;
+}
+
+message ListParticipantsRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message ListParticipantsResponse {
+  repeated Participation participants = 1;
+}
+
+message RemoveParticipantRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+  string chat_user_id = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message RemoveParticipantResponse {}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_PENDING = 1;
+  JOB_STATUS_RUNNING = 2;
+  JOB_STATUS_DONE = 3;
+  JOB_STATUS_FAILED = 4;
+  JOB_STATUS_CANCELED = 5;
+}
+
+message ScheduledReminder {
+  int32 sequence = 1;
+  google.protobuf.Timestamp run_at = 2;
+  JobStatus status = 3;
+}
+
+enum ReminderTargetKind {
+  REMINDER_TARGET_KIND_UNSPECIFIED = 0;
+  REMINDER_TARGET_KIND_EVENT = 1;
+  REMINDER_TARGET_KIND_RECRUIT = 2;
+}
+
+message ReminderTarget {
+  ReminderTargetKind kind = 1;
+  string channel_id = 2;
+  optional string message_id = 3;
+  bool ok = 4;
+  string error = 5;
+}
+
+message ReminderLog {
+  int32 sequence = 1;
+  google.protobuf.Timestamp sent_at = 2;
+  repeated ReminderTarget targets = 3;
+}
+
+message ListRemindersRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message ListRemindersResponse {
+  repeated ScheduledReminder scheduled = 1;
+  repeated ReminderLog history = 2;
+}
+
+message SendReminderNowRequest {
+  string event_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message SendReminderNowResponse {}

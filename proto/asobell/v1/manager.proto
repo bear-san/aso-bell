@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+import "asobell/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// ManagerService は Manager が公開し、対になる 1 つの Provider が呼び出す。
+service ManagerService {
+  // ReportWorkspaces は Provider が把握しているワークスペースの追加・更新を通知する。
+  // Discord の GuildCreate のように接続後に判明するワークスペースを Manager へ伝えるために使う。
+  rpc ReportWorkspaces(ReportWorkspacesRequest) returns (ReportWorkspacesResponse);
+  // HandleCommand はスラッシュコマンドを処理し、返信内容を返す。
+  rpc HandleCommand(HandleCommandRequest) returns (HandleCommandResponse);
+  // HandleAction はボタン押下を処理し、返信内容を返す。
+  rpc HandleAction(HandleActionRequest) returns (HandleActionResponse);
+  // HandleFormSubmit はフォーム送信を処理する。バリデーションエラーはフィールド単位で返す。
+  rpc HandleFormSubmit(HandleFormSubmitRequest) returns (HandleFormSubmitResponse);
+}
+
+message ReportWorkspacesRequest {
+  repeated WorkspaceInfo workspaces = 1;
+}
+
+message ReportWorkspacesResponse {
+  repeated WorkspaceRef workspaces = 1;
+}
+
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  // 実行チャンネルへ全員に見える形で投稿する。
+  VISIBILITY_CHANNEL = 1;
+  // 本人にだけ見える。Provider が非対応なら DM にフォールバックする。
+  VISIBILITY_EPHEMERAL = 2;
+}
+
+// Reply は Manager からのインバウンド処理結果。Provider はプラットフォーム形式で描画する。
+message Reply {
+  Message message = 1;
+  Visibility visibility = 2;
+  // open_form が設定されている場合、Provider はフォーム(モーダル)を開く。forms 非対応の Provider には返さない。
+  Form open_form = 3;
+  // form_errors はフォーム送信のバリデーション結果。field id → メッセージ。
+  map<string, string> form_errors = 4;
+}
+
+message Command {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  string user_id = 3;
+  // name はサブコマンド名("new", "end", "login" など)。
+  string name = 4;
+  map<string, string> args = 5;
+  string raw_text = 6;
+  google.protobuf.Timestamp received_at = 7;
+}
+
+message HandleCommandRequest {
+  Command command = 1;
+}
+
+message HandleCommandResponse {
+  Reply reply = 1;
+}
+
+message Action {
+  WorkspaceRef workspace = 1;
+  string channel_id = 2;
+  string message_id = 3;
+  string user_id = 4;
+  string action_id = 5;
+  google.protobuf.Timestamp received_at = 6;
+}
+
+message HandleActionRequest {
+  Action action = 1;
+}
+
+message HandleActionResponse {
+  Reply reply = 1;
+}
+
+message FormSubmission {
+  WorkspaceRef workspace = 1;
+  string user_id = 2;
+  string form_id = 3;
+  string metadata = 4;
+  map<string, string> values = 5;
+  google.protobuf.Timestamp received_at = 6;
+}
+
+message HandleFormSubmitRequest {
+  FormSubmission submission = 1;
+}
+
+message HandleFormSubmitResponse {
+  Reply reply = 1;
+}

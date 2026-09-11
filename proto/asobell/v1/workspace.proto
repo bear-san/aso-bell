@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+import "asobell/v1/common.proto";
+import "asobell/v1/event.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// WorkspaceService は WebConsole 向けのワークスペース設定操作。
+service WorkspaceService {
+  rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
+    option (google.api.http) = {get: "/api/v1/workspaces"};
+  }
+  rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
+    option (google.api.http) = {get: "/api/v1/workspaces/{workspace_id}"};
+  }
+  rpc UpdateWorkspaceSettings(UpdateWorkspaceSettingsRequest) returns (UpdateWorkspaceSettingsResponse) {
+    option (google.api.http) = {
+      patch: "/api/v1/workspaces/{workspace_id}/settings"
+      body: "*"
+    };
+  }
+  // ListWorkspaceChannels は Provider に問い合わせる。Provider が offline なら UNAVAILABLE。
+  rpc ListWorkspaceChannels(ListWorkspaceChannelsRequest) returns (ListWorkspaceChannelsResponse) {
+    option (google.api.http) = {get: "/api/v1/workspaces/{workspace_id}/channels"};
+  }
+}
+
+message DiscordWorkspaceSettings {
+  optional string event_category_id = 1;
+  optional string archive_category_id = 2;
+}
+
+message WorkspaceSettings {
+  optional string recruit_channel_id = 1;
+  // timezone は IANA TZ 名。
+  string timezone = 2;
+  ReminderPolicy default_reminder_policy = 3;
+  google.protobuf.Duration peek_duration = 4;
+  google.protobuf.Duration auto_end_grace = 5;
+  string channel_name_prefix = 6;
+  // default_start_time は "HH:MM"。チャット入力で時刻が省略されたときに使う。
+  string default_start_time = 7;
+  DiscordWorkspaceSettings discord = 8;
+}
+
+message Workspace {
+  string workspace_id = 1;
+  ProviderKind provider = 2;
+  string external_id = 3;
+  string name = 4;
+  WorkspaceSettings settings = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message ListWorkspacesRequest {}
+
+message ListWorkspacesResponse {
+  repeated Workspace workspaces = 1;
+}
+
+message GetWorkspaceRequest {
+  string workspace_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message GetWorkspaceResponse {
+  Workspace workspace = 1;
+}
+
+// UpdateWorkspaceSettingsRequest は設定されたフィールドのみ更新する。
+message UpdateWorkspaceSettingsRequest {
+  string workspace_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+  optional string recruit_channel_id = 2;
+  bool clear_recruit_channel = 3;
+  optional string timezone = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+  optional ReminderPolicy default_reminder_policy = 5;
+  optional google.protobuf.Duration peek_duration = 6 [(buf.validate.field).duration = {
+    gte: {seconds: 300}
+    lte: {seconds: 86400}
+  }];
+  optional google.protobuf.Duration auto_end_grace = 7 [(buf.validate.field).duration = {
+    gte: {seconds: 0}
+    lte: {seconds: 604800}
+  }];
+  optional string channel_name_prefix = 8 [(buf.validate.field).string.max_len = 16];
+  optional string default_start_time = 9 [(buf.validate.field).string.pattern = "^([01][0-9]|2[0-3]):[0-5][0-9]$"];
+  optional DiscordWorkspaceSettings discord = 10;
+}
+
+message UpdateWorkspaceSettingsResponse {
+  Workspace workspace = 1;
+}
+
+message ListWorkspaceChannelsRequest {
+  string workspace_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message ListWorkspaceChannelsResponse {
+  repeated ChannelInfo channels = 1;
+}

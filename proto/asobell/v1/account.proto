@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package asobell.v1;
+
+import "asobell/v1/common.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+
+// AccountService はログインユーザー自身と、チャット ID の連携を扱う。
+// Google ログイン自体(リダイレクトフロー)は gRPC ではなく Manager の HTTP ハンドラ /auth/* が担う。
+service AccountService {
+  rpc GetMe(GetMeRequest) returns (GetMeResponse) {
+    option (google.api.http) = {get: "/api/v1/me"};
+  }
+  rpc ListIdentities(ListIdentitiesRequest) returns (ListIdentitiesResponse) {
+    option (google.api.http) = {get: "/api/v1/me/identities"};
+  }
+  // LinkIdentity は連携トークンを消費してチャットユーザーをログインユーザーに紐づける。
+  rpc LinkIdentity(LinkIdentityRequest) returns (LinkIdentityResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me/identities:link"
+      body: "*"
+    };
+  }
+  rpc UnlinkIdentity(UnlinkIdentityRequest) returns (UnlinkIdentityResponse) {
+    option (google.api.http) = {delete: "/api/v1/me/identities/{identity_id}"};
+  }
+  // GetLinkToken は連携ページ表示用にトークンの内容を返す。トークンは消費しない。
+  rpc GetLinkToken(GetLinkTokenRequest) returns (GetLinkTokenResponse) {
+    option (google.api.http) = {get: "/api/v1/link-tokens/{token}"};
+  }
+  // Logout はセッションを破棄する。ゲートウェイが Set-Cookie で Cookie を失効させる。
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me:logout"
+      body: "*"
+    };
+  }
+}
+
+message ConsoleUser {
+  string user_id = 1;
+  string email = 2;
+  string name = 3;
+  string picture = 4;
+}
+
+message ChatIdentity {
+  string identity_id = 1;
+  string workspace_id = 2;
+  ProviderKind provider = 3;
+  string workspace_name = 4;
+  string chat_user_id = 5;
+  string display_name = 6;
+  google.protobuf.Timestamp linked_at = 7;
+}
+
+message GetMeRequest {}
+
+message GetMeResponse {
+  ConsoleUser user = 1;
+}
+
+message ListIdentitiesRequest {}
+
+message ListIdentitiesResponse {
+  repeated ChatIdentity identities = 1;
+}
+
+message LinkIdentityRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 32
+    max_len: 64
+  }];
+}
+
+message LinkIdentityResponse {
+  ChatIdentity identity = 1;
+}
+
+message UnlinkIdentityRequest {
+  string identity_id = 1 [(buf.validate.field).string.pattern = "^[0-9a-f]{24}$"];
+}
+
+message UnlinkIdentityResponse {}
+
+message GetLinkTokenRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 32
+    max_len: 64
+  }];
+}
+
+message GetLinkTokenResponse {
+  ProviderKind provider = 1;
+  string workspace_name = 2;
+  string display_name = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  // already_linked はこのチャットユーザーが既に誰かのアカウントと連携済みか。
+  bool already_linked = 5;
+}
+
+message LogoutRequest {}
+
+message LogoutResponse {}

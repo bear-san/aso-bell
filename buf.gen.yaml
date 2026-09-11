@@ -1,0 +1,22 @@
+version: v2
+inputs:
+  - directory: proto
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.11
+    out: gen
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go:v1.6.2
+    out: gen
+    opt: paths=source_relative
+  - remote: buf.build/grpc-ecosystem/gateway:v2.30.0
+    out: gen
+    opt: paths=source_relative
+  - remote: buf.build/community/google-gnostic-openapi:v0.7.1
+    out: gen/openapi
+    opt:
+      - title=aso-bell Console API
+      - version=1.0.0
+      - naming=json
+      - enum_type=string
+      - fq_schema_naming=true
+      - default_response=true
