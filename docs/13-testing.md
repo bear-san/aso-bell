@@ -14,14 +14,15 @@
 | 単体 | `domain`(バリデーション、状態遷移、リマインド時刻計算、チャンネル名正規化、日時パース) | 純粋関数のテーブル駆動テスト | ms |
 | 単体 | `manager/usecase` | Fake Repository(インメモリ)+ Fake ProviderPort + Fake Clock | ms |
 | 単体 | `manager/bot`(コマンド解釈、文言、フォーム定義) | Fake Usecase | ms |
-| 単体 | `shared/markup`, `shared/channelname`, `shared/rpcauth`, `shared/rpcsrv` | 純粋関数・インターセプタの単体テスト | ms |
+| 単体 | `shared/markup`, `shared/channelname`, `shared/rpcauth`, `shared/rpcsrv`, `provider/render` | 純粋関数・インターセプタ・描画の単体テスト | ms |
 | 統合 | `manager/store/mongo` | testcontainers `mongo:7` | 秒 |
 | 統合 | `manager/scheduler` | testcontainers + Fake ハンドラ | 秒 |
 | 統合 | `manager/rpc`(Console 系サービス) | `bufconn` で gRPC サーバーを起動し、生成クライアントで呼ぶ。認証インターセプタ・protovalidate を通す | 秒 |
 | 統合 | `manager/app` | testcontainers `mongo:7` + 到達できない Provider アドレスで `serve` を起動し、`/healthz`・`/readyz`・gRPC Health・Provider offline・積み残しジョブの実行を検証 | 秒 |
 | 統合 | `manager/gateway` | `httptest` でゲートウェイ + HTTP ミドルウェアを起動し、Cookie 付き REST → gRPC → レスポンス JSON / エラー JSON / `Set-Cookie` を検証 | 秒 |
 | 統合 | `manager/rpc` + `manager/providerclient` | `bufconn` で ManagerService と `fake.ProviderServer` を起動し、相互呼び出し(HandleAction 中の AddMember)を検証 | 秒 |
-| 統合 | `provider/runtime` | `bufconn` で Fake ManagerService を起動し、`fake.Adapter` と組み合わせて疎通再試行・`GetInfo` 応答・ACK タイミング・DM フォールバックを検証 | 秒 |
+| 統合 | `provider/runtime` | `bufconn` で Fake ManagerService を起動し、`fake.Adapter` と組み合わせて疎通再試行・`GetInfo` 応答・ACK タイミング・DM フォールバック・エラー変換を検証 | 秒 |
+| 統合 | `provider/app` | 実ポートの Fake ManagerService に対して `serve` を起動し、疎通 → チャット接続 → Health SERVING と共有トークン認証を検証 | 秒 |
 | アダプタ | `provider/slack`, `provider/discord` | `httptest.Server` で Web API をスタブ(描画・エラー変換の検証)。Gateway/Socket Mode の接続は手動 E2E | 秒 |
 | コンテナ | Compose 全体 | `docker compose up` で manager + `provider-fake`(fake.Adapter を載せたテスト用バイナリ)+ mongo を起動し、`GetInfo` 疎通 → WebConsole からイベント作成 → provider-fake に RPC が届くことを確認(nightly) | 分 |
 | フロント | コンポーネント、フォームバリデーション、API クライアント middleware | Vitest + Testing Library | 秒 |
@@ -32,13 +33,14 @@
 | Fake | 場所 | 概要 |
 | --- | --- | --- |
 | `fake.Adapter` | `internal/provider/fake` | Provider プロセス内 `Adapter` のインメモリ実装。チャンネル・メンバー・メッセージ・ピンを map で保持。`Calls()`、`FailNext(method, err)` |
+| `fake.Responder` | `internal/provider/fake` | `Ack` / `Followup` / `OpenForm` の呼び出しを順番付きで記録する Responder。Runtime の ACK 順序の検証に使う |
 | `fake.ProviderServer` | `internal/provider/fake` | `ProviderServiceServer` のインメモリ実装。Manager 側テストで `bufconn` 上に起動 |
 | `fake.ManagerServer` | `internal/provider/fake` | `ManagerServiceServer` のインメモリ実装。Provider Runtime のテスト用。受け取った Command/Action を記録し、設定した Reply を返す |
 | `memstore` | `internal/manager/memstore` | Repository インターフェースのインメモリ実装。usecase・scheduler・rpc の単体テスト専用 |
 | `FakeClock` | `internal/testutil` | `Now()` を固定、`Advance(d)` で進める |
 | `FakeIDs` | `internal/testutil` | 連番 ID |
 
-Fake と実装の両方が同じ契約テスト(`internal/provider/adaptertest`, `internal/manager/storetest`)を通すようにし、Fake の挙動が実装と乖離しないようにする。gRPC 経由の `ProviderPort` 実装(`providerclient`)は `fake.ProviderServer` を bufconn で起動して契約テストを通す。
+Repository は `memstore` と `store/mongo` の両方が `internal/manager/storetest` の契約テストを通し、Fake の挙動が実装と乖離しないようにする。`Adapter` の契約テストは `internal/provider/adaptertest` に置き、`fake.Adapter` が通す。Slack / Discord の Adapter は Gateway / Socket Mode への実接続が要る `Connect` を持ち契約テストを走らせられないため、`httptest` スタブで同じ振る舞い(冪等性、センチネルエラーへの変換)を個別に検証する。gRPC 経由の `ProviderPort` 実装(`providerclient`)は `fake.ProviderServer` を bufconn で起動して検証する。
 
 ## 4. 重点シナリオ
 

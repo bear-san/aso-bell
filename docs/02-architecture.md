@@ -157,11 +157,12 @@ aso-bell/
 │       ├── app/                    # 組み立て(Adapter 選択、Runtime 起動)
 │       ├── config/                 # Provider 共通設定 + Slack/Discord 固有設定
 │       ├── adapter/                # Adapter / InboundSink インターフェース、型、エラー
+│       ├── adaptertest/            # Adapter 実装の契約テスト
 │       ├── runtime/                # ProviderService サーバー、Manager クライアント、インバウンド転送、DM フォールバック
 │       ├── render/                 # Message → 各プラットフォーム形式
 │       ├── slack/
 │       ├── discord/
-│       └── fake/                   # テスト用 Adapter と、Manager テスト用の ProviderService フェイク
+│       └── fake/                   # テスト用 Adapter / Responder と、対向サービスのフェイク(ProviderService / ManagerService)
 ├── web/                            # WebConsole
 ├── deploy/
 │   ├── Dockerfile                  # --target manager | provider-slack | provider-discord
