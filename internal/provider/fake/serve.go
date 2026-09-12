@@ -17,9 +17,22 @@ const bufSize = 1 << 20
 // Serve は ProviderService 実装を bufconn 上のインプロセス gRPC サーバーとして起動し、
 // 接続済みクライアントと停止関数を返す。テストからネットワークを使わずに RPC を往復させる。
 func Serve(srv asobellv1.ProviderServiceServer, opts ...grpc.ServerOption) (*grpc.ClientConn, func(), error) {
+	return serve(func(server *grpc.Server) {
+		asobellv1.RegisterProviderServiceServer(server, srv)
+	}, opts...)
+}
+
+// ServeManager は ManagerService 実装を bufconn 上で起動する。Provider Runtime のテストに使う。
+func ServeManager(srv asobellv1.ManagerServiceServer, opts ...grpc.ServerOption) (*grpc.ClientConn, func(), error) {
+	return serve(func(server *grpc.Server) {
+		asobellv1.RegisterManagerServiceServer(server, srv)
+	}, opts...)
+}
+
+func serve(register func(*grpc.Server), opts ...grpc.ServerOption) (*grpc.ClientConn, func(), error) {
 	lis := bufconn.Listen(bufSize)
 	server := grpc.NewServer(opts...)
-	asobellv1.RegisterProviderServiceServer(server, srv)
+	register(server)
 
 	go func() { _ = server.Serve(lis) }()
 
