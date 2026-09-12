@@ -14,6 +14,7 @@
 | MongoDB | `go.mongodb.org/mongo-driver/v2` | 8,539 | Apache-2.0 | v2.9.1 | 公式。Manager のみ |
 | gRPC | `google.golang.org/grpc` | 23,052 | Apache-2.0 | v1.83.2 | Manager ⇄ Provider(→ [16-grpc.md](16-grpc.md)) |
 | Protobuf | `google.golang.org/protobuf` | 3,349 | **BSD-3-Clause** | v1.36.12 | grpc-go の必須依存。例外採用(→ §2.1) |
+| エラー詳細 | `google.golang.org/genproto/googleapis/rpc` | – | Apache-2.0 | v0.0.0-20260904194346 | `errdetails.ErrorInfo`(→ [16-grpc.md](16-grpc.md) §3)。grpc-go の必須依存として既に推移的に入っている |
 | protoc plugin | `protoc-gen-go` / `protoc-gen-go-grpc` | – | BSD-3 / Apache-2.0 | v1.36.12 / v1.6.2 | buf のリモートプラグインとして利用 |
 | Proto ツール | `bufbuild/buf` | 11,429 | Apache-2.0 | v1.73.0 | lint / generate / breaking |
 | REST ゲートウェイ | `github.com/grpc-ecosystem/grpc-gateway/v2` | 20,002 | **BSD-3-Clause** | v2.30.0 | `google.api.http` → REST(→ §2.3)。BSD 許容済み |

@@ -159,7 +159,7 @@ allow := discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | di
 cmd/{manager,provider-slack,provider-discord}   # main のみ。組み立ては internal/*/app
 proto/asobell/v1/                               # すべての API 契約(単一ソース)
 gen/asobell/v1/, gen/openapi/openapi.yaml        # buf generate の出力(コミットする、編集しない)
-internal/shared/{rpcauth,logging,version,markup,channelname}   # Manager / Provider 共通
+internal/shared/{rpcauth,rpcerr,logging,version,markup,channelname}   # Manager / Provider 共通
 internal/manager/{app,config,domain,usecase,bot,rpc,gateway,providerclient,scheduler,store/mongo,auth,testutil}
 internal/provider/{app,config,adapter,runtime,render,slack,discord,fake}
 web/                                            # WebConsole(Vite + React)

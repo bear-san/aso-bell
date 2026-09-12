@@ -33,7 +33,7 @@
 | `fake.Adapter` | `internal/provider/fake` | Provider プロセス内 `Adapter` のインメモリ実装。チャンネル・メンバー・メッセージ・ピンを map で保持。`Calls()`、`FailNext(method, err)` |
 | `fake.ProviderServer` | `internal/provider/fake` | `ProviderServiceServer` のインメモリ実装。Manager 側テストで `bufconn` 上に起動 |
 | `fake.ManagerServer` | `internal/provider/fake` | `ManagerServiceServer` のインメモリ実装。Provider Runtime のテスト用。受け取った Command/Action を記録し、設定した Reply を返す |
-| `memstore` | `internal/manager/usecase/memstore_test.go` | Repository インターフェースのインメモリ実装。usecase の単体テスト専用 |
+| `memstore` | `internal/manager/memstore` | Repository インターフェースのインメモリ実装。usecase・scheduler・rpc の単体テスト専用 |
 | `FakeClock` | `internal/testutil` | `Now()` を固定、`Advance(d)` で進める |
 | `FakeIDs` | `internal/testutil` | 連番 ID |
 

@@ -25,7 +25,7 @@ allow := discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | di
 
 ## 2. Go
 
-- Go 1.25。整形は `golangci-lint fmt`(goimports + golines、行長 120)。`.golangci.yml` は [maratori の golden config](https://gist.github.com/maratori/47a4d00457a92aa426dbd48a18776322)(MIT)をベースに、プロジェクト固有の最小限(local-prefixes、manager ⇄ provider の depguard、`gen/` 除外、日本語コメント向けの godot 設定、`version.Version` の例外、BSON リテラルの goconst 除外、テスト支援パッケージへの `_test.go` 相当の緩和)だけをカスタマイズする。変更点はファイル冒頭に列挙する
+- Go 1.25。整形は `golangci-lint fmt`(goimports + golines、行長 120)。`.golangci.yml` は [maratori の golden config](https://gist.github.com/maratori/47a4d00457a92aa426dbd48a18776322)(MIT)をベースに、プロジェクト固有の最小限(local-prefixes、manager ⇄ provider の depguard、`gen/` 除外、日本語コメント向けの godot 設定、`version.Version` の例外、BSON リテラルの goconst 除外、テスト支援パッケージへの `_test.go` 相当の緩和、Manager のテストからの `internal/provider/fake` 参照許可)だけをカスタマイズする。変更点はファイル冒頭に列挙する
 - テストは外部パッケージ(`package xxx_test`)で書く(`testpackage`)。非公開関数を直接試すときだけ `*_internal_test.go` に内部パッケージテストを置く。`context.Background()` ではなく `t.Context()` を使う(`usetesting`)
 - パッケージ名は小文字単語 1 つ。`util`, `common`, `helper` は禁止
 - エラーは `fmt.Errorf("<動作>: %w", err)` でラップし、文脈を積む。センチネルは `var ErrXxx = errors.New(...)`、判定は `errors.Is` / `errors.As`
@@ -47,7 +47,7 @@ allow := discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | di
 - Console 向けサービスの RPC には必ず `google.api.http` を付け、パスは `/api/v1/<リソース複数形>/{id}`、カスタム動詞は `:end` のようにコロン区切り(AIP-136)
 - 入力制約は `buf.validate` アノテーションで proto に書く。Go 側で同じ制約を重複して書かない(ドメイン不変条件のみドメイン層に書く)
 - REST 化される RPC のフィールド名は snake_case で定義し、JSON では protojson の既定(lowerCamelCase)に任せる
-- `internal/manager` と `internal/provider` は互いに import しない。共有は `gen/` と `internal/shared/` のみ(`depguard` で強制)
+- `internal/manager` と `internal/provider` は互いに import しない。共有は `gen/` と `internal/shared/` のみ(`depguard` で強制)。ただし Manager の**テストファイルに限り** `internal/provider/fake` の参照を許す(docs/13 §2 が `providerclient` の検証に `fake.ProviderServer` を使うと定めているため)。禁止の目的は本番コードの依存方向の固定にある
 
 ## 4. TypeScript / React
 

@@ -100,7 +100,7 @@ cmd/provider-discord ─┘   ├─> internal/provider/runtime (Manager 疎通�
                           ├─> internal/provider/slack | discord | fake (Adapter 実装)
                           └─> internal/provider/render (Message → Block Kit / Components)
 
-共通: gen/asobell/v1 (生成コード)、internal/shared/{rpcauth, markup, channelname, logging}
+共通: gen/asobell/v1 (生成コード)、internal/shared/{rpcauth, rpcerr, markup, channelname, logging}
 ```
 
 - `internal/manager/domain`: エンティティ・値オブジェクト・ドメインエラー。外部依存なし
@@ -134,6 +134,7 @@ aso-bell/
 ├── internal/
 │   ├── shared/
 │   │   ├── rpcauth/                # Bearer トークンのインターセプタ(サーバー・クライアント)
+│   │   ├── rpcerr/                 # reason 付き gRPC エラーの生成・解析(docs/16 §3 の契約)
 │   │   ├── markup/                 # 共通マークアップのパース
 │   │   ├── channelname/            # チャンネル名正規化
 │   │   └── logging/                # slog 設定
@@ -145,7 +146,7 @@ aso-bell/
 │   │   ├── bot/                    # コマンド解釈、文言、フォーム定義
 │   │   ├── rpc/                    # gRPC サービス実装(manager_service.go, event_service.go, ...)、エラー変換
 │   │   ├── gateway/                # grpc-gateway ServeMux、HTTP mux、CSRF/セキュリティヘッダ、SPA 配信
-│   │   ├── providerclient/         # ProviderPort の gRPC 実装、状態監視
+│   │   ├── providerclient/         # ProviderPort の gRPC 実装、Dial、状態監視
 │   │   ├── scheduler/              # ジョブワーカー
 │   │   ├── store/mongo/
 │   │   ├── auth/                   # Google OIDC ハンドラ、セッション、認証インターセプタ、連携トークン

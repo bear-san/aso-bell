@@ -18,6 +18,11 @@ var (
 	ErrLinkTokenExpired        = errors.New("link token expired")
 	ErrLinkTokenConsumed       = errors.New("link token already consumed")
 	ErrOrganizerCannotLeave    = errors.New("organizer cannot leave")
+	// ErrPermanent はリトライしても結果が変わらない失敗。ジョブワーカーは即座に failed にする(docs/11 §3.2)。
+	ErrPermanent = errors.New("permanent failure")
+	// ErrProviderKindMismatch は記録済みの Provider 種別と接続先の種別が食い違う状態。
+	// ワークスペース ID・ユーザー ID の体系が異なりデータが壊れるため、起動を中止する(ADR 0008)。
+	ErrProviderKindMismatch = errors.New("provider kind mismatch")
 )
 
 // FieldError は 1 フィールドの検証エラー。Field は API のフィールドパス(`reminder_policy.every` など)。

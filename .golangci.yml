@@ -12,6 +12,7 @@
 #   - linters.exclusions.warn-unused を false に(ベース由来の汎用ルールが未使用でも警告しない)
 #   - BSON のフィールド名・演算子リテラルを goconst の対象外に(store/mongo)
 #   - テスト支援パッケージ(storetest / adaptertest / testutil / fake)に _test.go と同じ緩和を適用
+#   - depguard の「manager must not import provider」をテストファイルでは適用しない(docs/13 §2 の bufconn 統合テスト)
 
 # This file is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021-2025 Marat Reymers
@@ -243,8 +244,12 @@ linters:
             - pkg: log$
               desc: Use log/slog instead, see https://go.dev/blog/slog
         "manager must not import provider":
+          # docs/13-testing.md は Manager の providerclient を fake.ProviderServer(internal/provider/fake)で
+          # 検証すると定めているため、テストファイルだけは境界を越えられるようにする。
+          # 禁止の目的は本番コードの依存方向の固定であり、テストの配線はそれを崩さない。
           files:
             - "**/internal/manager/**"
+            - "!$test"
           deny:
             - pkg: github.com/bear-san/aso-bell/internal/provider
               desc: internal/manager と internal/provider は互いに import しない(共有は gen/ と internal/shared/ のみ、docs/14 §3)
