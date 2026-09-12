@@ -100,13 +100,14 @@ cmd/provider-discord ─┘   ├─> internal/provider/runtime (Manager 疎通�
                           ├─> internal/provider/slack | discord | fake (Adapter 実装)
                           └─> internal/provider/render (Message → Block Kit / Components)
 
-共通: gen/asobell/v1 (生成コード)、internal/shared/{rpcauth, rpcerr, markup, channelname, logging}
+共通: gen/asobell/v1 (生成コード)、internal/shared/{rpcauth, rpcsrv, rpcerr, markup, channelname, logging}
 ```
 
 - `internal/manager/domain`: エンティティ・値オブジェクト・ドメインエラー。外部依存なし
 - `internal/manager/usecase`: ユースケース。`Repository`、`ProviderPort`(Provider への操作)、`Clock` のインターフェースに依存
 - `internal/manager/providerclient`: `ProviderPort` を `ProviderServiceClient` で実装し、gRPC ステータスをドメインエラーへ変換。単一の `ClientConn` と Provider 状態監視(`GetInfo` ポーリング)を持つ
 - `internal/manager/rpc`: すべての gRPC サービス実装。`ManagerService` は Bot Core に委譲、Console 向けサービスは Usecase を呼ぶ。認証済み主体(`auth.Principal`)は `context` から取り出す
+- `internal/manager/app`: 依存の組み立てと起動・停止順序。`manager serve` / `migrate` / `healthcheck` の実体
 - `internal/manager/gateway`: grpc-gateway の `ServeMux` 構築(Cookie → metadata、エラー変換、Set-Cookie 転送)、`/auth/*`・`/healthz`・SPA を含む `http.ServeMux` の組み立て、CSRF・セキュリティヘッダのミドルウェア
 - `internal/manager/bot`: コマンド解釈、文言、フォーム定義。Provider 非依存
 - `internal/provider/adapter`: Provider プロセス内の `Adapter` インターフェース(チャットツール操作)と `InboundSink`(受信イベントの通知先)
@@ -134,6 +135,7 @@ aso-bell/
 ├── internal/
 │   ├── shared/
 │   │   ├── rpcauth/                # Bearer トークンのインターセプタ(サーバー・クライアント)
+│   │   ├── rpcsrv/                 # gRPC サーバー共通の recovery / logging インターセプタ、キープアライブ設定
 │   │   ├── rpcerr/                 # reason 付き gRPC エラーの生成・解析(docs/16 §3 の契約)
 │   │   ├── markup/                 # 共通マークアップのパース
 │   │   ├── channelname/            # チャンネル名正規化

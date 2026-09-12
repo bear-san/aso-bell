@@ -67,8 +67,9 @@ Discord 固有:
 ## 3. CLI
 
 ```text
-manager serve             # 全コンポーネント起動
+manager serve             # 全コンポーネント起動(起動時にインデックス作成も行う)
 manager migrate           # インデックス作成とスキーマ移行のみ実行して終了
+manager healthcheck       # 自プロセスの gRPC Health を叩く(Compose の healthcheck 用)
 manager version
 
 provider-slack   [--manager-addr ADDR] [--slack-bot-token ...] ...
