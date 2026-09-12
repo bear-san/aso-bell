@@ -161,7 +161,7 @@ proto/asobell/v1/                               # すべての API 契約(単一
 gen/asobell/v1/, gen/openapi/openapi.yaml        # buf generate の出力(コミットする、編集しない)
 internal/shared/{rpcauth,rpcsrv,rpcerr,logging,version,markup,channelname}   # Manager / Provider 共通
 internal/manager/{app,config,domain,usecase,bot,rpc,gateway,providerclient,scheduler,store/mongo,auth,testutil}
-internal/provider/{app,config,adapter,runtime,render,slack,discord,fake}
+internal/provider/{app,config,adapter,adaptertest,runtime,render,slack,discord,fake}
 web/                                            # WebConsole(Vite + React)
 deploy/                                         # Dockerfile, compose.yaml, slack-manifest.yaml
 docs/                                           # 設計文書・ADR・裏取り資料

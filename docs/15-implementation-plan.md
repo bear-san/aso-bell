@@ -47,12 +47,12 @@
 
 ## M4. Provider Runtime と Discord(3 日)
 
-- [ ] `internal/provider/adapter`(インターフェース、型、エラー)、`fake.Adapter`、`fake.ManagerServer`
-- [ ] `internal/provider/runtime`: Manager 疎通の再試行、`ProviderService` サーバー(`GetInfo` / `ListConnectedWorkspaces` 含む)、インバウンド転送と ACK 制御、EPHEMERAL → DM フォールバック、Health
-- [ ] `internal/provider/render`(Message → Discord components / Slack Block Kit の共通部分)
-- [ ] `internal/provider/discord`: Adapter 実装、コマンド登録(Guild 限定)、エラー変換、`PIN_MESSAGES` 定数
-- [ ] `cmd/provider-discord`
-- [ ] Runtime の bufconn テスト、Discord Adapter の `httptest` テスト
+- [x] `internal/provider/adapter`(インターフェース、型、エラー)、`fake.Adapter`、`fake.Responder`、`fake.ManagerServer`、契約テスト `adaptertest`
+- [x] `internal/provider/runtime`: Manager 疎通の再試行、`ProviderService` サーバー(`GetInfo` / `ListConnectedWorkspaces` 含む)、インバウンド転送と ACK 制御、EPHEMERAL → DM フォールバック、Health
+- [x] `internal/provider/render`(Message → Discord components / Slack Block Kit の共通部分)
+- [x] `internal/provider/discord`: Adapter 実装、コマンド登録(Guild 限定)、エラー変換、`PIN_MESSAGES` 定数
+- [x] `cmd/provider-discord`、`internal/provider/app`(組み立て・起動/停止順序)
+- [x] Runtime の bufconn テスト、Discord Adapter の `httptest` テスト
 - [ ] 手動 E2E(実 Discord サーバー + ローカル Manager)でイベント作成〜終了
 - 完了条件: Discord で `/asobell new` → 参加 → `/asobell end` が通る
 

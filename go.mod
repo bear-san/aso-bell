@@ -4,6 +4,9 @@ go 1.25.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.2
+	// v0.29.0 のピン留めは Discord 側で deprecated になったエンドポイントを叩くため、
+	// 新エンドポイントへ更新済みの master を疑似バージョンで固定する(docs/03-tech-stack.md §2.6)。
+	github.com/bwmarrin/discordgo v0.29.1-0.20260214123928-f43dd94faaac
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0
 	github.com/stretchr/testify v1.12.1
@@ -37,6 +40,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.19.2 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
 	github.com/magiconair/properties v1.8.10 // indirect

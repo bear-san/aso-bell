@@ -102,7 +102,7 @@ Manager に到達できない(`UNAVAILABLE` / デッドライン超過)場合は
 `Reply.visibility == EPHEMERAL` または `PostEphemeral` RPC に対して:
 
 1. Adapter の `PostEphemeral` を試みる
-2. `ErrUnsupported`、`ErrNotFound`(Slack `channel_not_found` / `not_in_channel` / `user_not_in_channel`)の場合、`SendDirectMessage` へフォールバックし、可能なら元のチャンネルに「DM を送りました」を短く返す
+2. `ErrUnsupported`、`ErrNotFound`(Slack `channel_not_found` / `not_in_channel` / `user_not_in_channel`)の場合、`SendDirectMessage` へフォールバックし、`delivered_via_dm: true` を返す。元のチャンネルへの「DM を送りました」という通知は行わない。Discord ではインタラクション外に本人だけ見える投稿手段が無く、公開投稿にすると「その人に個別の連絡が行った」ことが他の参加者に見えてしまうため
 3. DM も失敗(`ErrDMBlocked`)した場合はエラーを Manager に返す(`FAILED_PRECONDITION` / `DM_BLOCKED`)。Manager は連携 URL のような機微な内容を公開チャンネルへは投稿しない
 
 Slack で `channel_id` が `D` 始まり(Bot との DM 内)なら、最初から通常投稿で返す。
@@ -206,8 +206,10 @@ Bot 招待 URL と権限ビット(`2251800082169872`)、制約(overwrite 上限�
 
 ## 8. Fake Adapter / Fake ProviderService (`internal/provider/fake`)
 
-- `fake.Adapter`: インメモリの Adapter。チャンネル・メンバー・メッセージ・ピンを map で保持し、呼び出し履歴と `FailNext(method, err)` を備える。Runtime のテストに使う
-- `fake.ProviderServer`: `ProviderServiceServer` のインメモリ実装。`bufconn` 上で起動し、Manager の Usecase / Job のテストに使う。両者は同じ契約テスト(`adaptertest`)を通す
+- `fake.Adapter`: インメモリの Adapter。チャンネル・メンバー・メッセージ・ピンを map で保持し、呼び出し履歴と `FailNext(method, err)` を備える。Runtime のテストに使う。`internal/provider/adaptertest` の契約テスト(冪等性、センチネルエラー)を通す
+- `fake.Responder`: `Ack` / `Followup` / `OpenForm` の呼び出し順を記録する Responder。Runtime の ACK 制御の検証に使う
+- `fake.ManagerServer`: `ManagerServiceServer` のインメモリ実装。`bufconn` 上で起動し、Runtime のテストに使う
+- `fake.ProviderServer`: `ProviderServiceServer` のインメモリ実装。`bufconn` 上で起動し、Manager の Usecase / Job のテストに使う。Adapter ではなく gRPC サーバーのフェイクであり、失敗の差し込みも gRPC ステータスで行うため契約テストは共有しない。Runtime を通した bufconn テストで、Adapter 側と同じ振る舞いになることを確かめる
 
 ## 9. Provider の追加手順(将来)
 
