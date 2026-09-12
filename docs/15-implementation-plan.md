@@ -26,19 +26,21 @@
 
 ## M2. Manager コア(3 日)
 
-- [ ] `internal/manager/usecase/ports.go`: `ProviderPort` インターフェース(M1 から繰り延べ)
-- [ ] `internal/provider/fake`: `fake.ProviderServer`(bufconn 用)
-- [ ] `internal/manager/providerclient`: `ProviderPort` の gRPC 実装、ステータス → ドメインエラー変換、`GetInfo` による状態監視と種別照合
-- [ ] `internal/manager/bot`: 文言テンプレート、フォーム定義、コマンドディスパッチ、日時・ペースのパース
-- [ ] Usecase: Event(Create/Update/End/Cancel/Get/List)、Participation(Join/Peek/Leave/Remove/ExpirePeek)、Reminder、Workspace(ListConnectedWorkspaces / ReportWorkspaces による同期)、ProviderStatus、Identity(IssueLinkToken/Link/Unlink)
-- [ ] ジョブハンドラ(`reminder`, `peek_expire`, `event_auto_end`, `archive_channel`)
-- [ ] `internal/manager/rpc`: `ManagerService` 実装
-- [ ] memstore + fake.ProviderServer による単体・統合テスト(遷移表、冪等性、並行押下、Provider offline)
+- [x] `internal/manager/usecase/ports.go`: `ProviderPort` インターフェースと Provider 由来のセンチネルエラー(M1 から繰り延べ)
+- [x] `internal/shared/markup`: 記法の組み立て・解析・平文化
+- [x] `internal/shared/rpcerr`: reason 付き gRPC エラーの生成・解析(docs/16 §3)
+- [x] `internal/provider/fake`: `fake.ProviderServer` と bufconn 起動ヘルパー `fake.Serve`
+- [x] `internal/manager/providerclient`: `ProviderPort` の gRPC 実装、ステータス → ドメインエラー変換、`Dial`(リトライポリシー・キープアライブ)、`Monitor` による状態監視と種別照合
+- [x] `internal/manager/bot`: 文言テンプレート、フォーム定義、コマンドディスパッチ、日時・ペースのパース
+- [x] Usecase: Event(Create/Update/End/Cancel/Get/List)、Participation(Join/Peek/Leave/Remove/ExpirePeek)、Reminder、Workspace(ListConnectedWorkspaces / ReportWorkspaces による同期)、ProviderStatus、Identity(IssueLinkToken/Link/Unlink)
+- [x] ジョブハンドラ(`reminder`, `peek_expire`, `event_auto_end`, `archive_channel`)
+- [x] `internal/manager/rpc`: `ManagerService` 実装
+- [x] memstore + fake.ProviderServer による単体・統合テスト(遷移表、冪等性、並行押下、Provider offline)
 - 完了条件: usecase のカバレッジ 90% 以上、bufconn 経由の相互呼び出しテストが緑
 
 ## M3. スケジューラと Manager 起動(1 日)
 
-- [ ] `internal/manager/scheduler`: ポーリング、claim、backoff、リース更新、graceful stop
+- [ ] `internal/manager/scheduler`: ポーリング、claim、backoff、リース更新、graceful stop(リース更新以外は M2 のジョブハンドラと合わせて実装済み)
 - [ ] `internal/manager/app`: 組み立て、起動順序、`manager serve` / `migrate` / `healthcheck`
 - [ ] testcontainers による排他・リース切れテスト、再起動後の pending ジョブ実行テスト
 - 完了条件: `manager serve` が Mongo だけで起動し、Provider 未接続でも API が応答し、Provider 状態が offline と表示される

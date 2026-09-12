@@ -86,6 +86,21 @@ Provider は Slack / Discord のエラーを gRPC ステータスへ変換する
 
 `ErrorInfo.domain` は `asobell.dev`、`metadata` にプラットフォームの生エラーコード(`slack_error: "name_taken"` 等)を入れる。
 
+契約の組み立てと解析は `internal/shared/rpcerr` に置く(Manager / Provider が同じ reason 定数を使うため)。Manager 側の `providerclient` は reason を優先し、reason を持たないエラーは gRPC コードで判定して次のセンチネルへ変換する。
+
+| `reason` | Manager のエラー |
+| --- | --- |
+| `CHANNEL_NOT_FOUND` / `MESSAGE_NOT_FOUND` / `USER_NOT_FOUND` | `domain.ErrNotFound` |
+| `NAME_TAKEN` | `usecase.ErrNameTaken` |
+| `BOT_PERMISSION` | `usecase.ErrBotPermission` |
+| `RATE_LIMITED` | `usecase.ErrRateLimited` |
+| `PIN_LIMIT` | `usecase.ErrPinLimit` |
+| `DM_BLOCKED` | `usecase.ErrDMBlocked` |
+| `UNSUPPORTED` | `usecase.ErrUnsupported` |
+| `PLATFORM_UNAVAILABLE` | `domain.ErrProviderUnavailable` |
+
+表に無いコードは変換せず、呼び出し文脈を付けてそのまま返す。
+
 ## 4. 認証・暗号化
 
 - 共有トークン `ASOBELL_RPC_TOKEN` を両側に設定し、`authorization: Bearer <token>` メタデータで相互認証する(両方向)。サーバー側インターセプタで検証し、不一致は `UNAUTHENTICATED`
@@ -157,6 +172,8 @@ sequenceDiagram
 ### 6.2 状態監視
 
 - Manager は 15 秒ごとに `GetInfo` を呼ぶ。3 回連続失敗、または `connected: false` で `offline` とみなし、`meta.provider.status` と WebConsole 表示を更新する
+- `GetInfo` に到達できないこと(RPC 失敗)と、チャットツールへ未接続であること(`connected: false`)は別の事象として扱う。RPC が失敗した回では `connected` を最後に観測した値のまま保ち、連続失敗回数で offline を判定する。成功したら失敗回数を 0 に戻す
+- 起動後に `kind` が変わった場合も種別不一致として扱い、エラーとしてログに残す(Provider の差し替え事故の検出)
 - Provider の gRPC Health は Compose の再起動判定に使い、Manager の監視は `GetInfo` に統一する(チャット接続状態まで見られるため)
 
 ### 6.3 停止

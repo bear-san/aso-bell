@@ -100,7 +100,7 @@ Provider が offline(gRPC `UNAVAILABLE`)の場合はリトライ可能エラー�
 | チラ見 | `peek_expire` | `peek:<participationId>:<peekCount>` |
 | 終了 / 中止 | `archive_channel` | `archive:<eventId>` |
 
-ポリシー変更時は既存の `pending` な `reminder` を `CancelByEvent` してから再生成する。再生成後の `sequence` は 1 から振り直すが、`reminder_logs` の重複判定は `(eventId, scheduledFor)` の時刻一致で行い、既送信時刻と同じ時刻のリマインドは送らない。
+ポリシー変更時は既存の `pending` な `reminder` を `CancelByEvent` してから再生成する。`sequence` はイベント内で**単調増加**させる(再生成時は既存の最大 `sequence` + 1 から続ける)。`jobs.dedupeKey` の一意インデックスは `canceled` を含むすべての状態に効くため、1 から振り直すと取消済みジョブの鍵と衝突し、再生成分が丸ごと弾かれてしまう。既送信との重複判定は `reminder_logs` の `(eventId, scheduledFor)` の時刻一致で行い、既送信時刻と同じ時刻のリマインドは送らない。
 
 ### 5.1 リマインド時刻の計算
 
@@ -115,7 +115,7 @@ interval モード:
   emit(startsAt - finalOffset) if > now
 ```
 
-emit した時刻を昇順にソートし、`sequence` を 1 から振る。30 件を超える場合はポリシー保存時に拒否する。
+emit した時刻を昇順にソートし、イベント内で未使用の `sequence` を順に振る(初回は 1 から)。30 件を超える場合はポリシー保存時に拒否する。
 
 ## 6. 設定
 
