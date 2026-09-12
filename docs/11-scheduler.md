@@ -19,10 +19,13 @@ cron ライブラリによるインメモリスケジュールではなく、**M
 ```text
 loop every pollInterval (default 10s):
   for i in 0..batchSize (default 10):
+    if 同時実行数 (default 4) に空きが無い: break   // 空きを確保してから claim する
     job := claim()            // FindOneAndUpdate
     if job == nil: break
     go run(job)
 ```
+
+先に claim してから実行を待たせると、待っている間もリースを占有して他のワーカーが取れなくなる。そのため同時実行の空きを確保してから claim する。
 
 ### 3.1 claim
 
@@ -53,7 +56,9 @@ returnDocument: After
 
 Provider が offline(gRPC `UNAVAILABLE`)の場合はリトライ可能エラーとして扱う。復帰後に backoff の次回時刻で実行される。リマインドはイベント開始を過ぎたら送る意味がないため、`reminder` ハンドラは `startsAt` を過ぎていれば no-op で成功扱いにする。
 
-実行中はリースを更新するハートビートを 1 分ごとに行う(長時間実行への備え。v1 のジョブはすべて数秒で終わる想定)。
+実行中はリース期間の半分ごと(既定の 2 分なら 1 分ごと)にリースを更新するハートビートを行う(長時間実行への備え。v1 のジョブはすべて数秒で終わる想定)。延長に失敗したらハートビートを諦める。掴み続けてもリース切れによる二重実行は防げないため。
+
+停止要求(SIGTERM)を受けても、実行中のジョブは最後まで進める。Provider 呼び出しを途中で切ると、投稿できたのかどうか分からないまま再試行することになるため。待ち時間の上限は Manager のシャットダウン手順が決める(docs/16-grpc.md §6.3)。
 
 ### 3.3 cancel
 

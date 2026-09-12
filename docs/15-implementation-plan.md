@@ -40,9 +40,9 @@
 
 ## M3. スケジューラと Manager 起動(1 日)
 
-- [ ] `internal/manager/scheduler`: ポーリング、claim、backoff、リース更新、graceful stop(リース更新以外は M2 のジョブハンドラと合わせて実装済み)
-- [ ] `internal/manager/app`: 組み立て、起動順序、`manager serve` / `migrate` / `healthcheck`
-- [ ] testcontainers による排他・リース切れテスト、再起動後の pending ジョブ実行テスト
+- [x] `internal/manager/scheduler`: ポーリング、claim、backoff、リース更新、graceful stop
+- [x] `internal/manager/app`: 組み立て、起動順序、`manager serve` / `migrate` / `healthcheck`
+- [x] testcontainers による排他・リース切れテスト、再起動後の pending ジョブ実行テスト
 - 完了条件: `manager serve` が Mongo だけで起動し、Provider 未接続でも API が応答し、Provider 状態が offline と表示される
 
 ## M4. Provider Runtime と Discord(3 日)

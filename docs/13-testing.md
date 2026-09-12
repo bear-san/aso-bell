@@ -14,10 +14,11 @@
 | 単体 | `domain`(バリデーション、状態遷移、リマインド時刻計算、チャンネル名正規化、日時パース) | 純粋関数のテーブル駆動テスト | ms |
 | 単体 | `manager/usecase` | Fake Repository(インメモリ)+ Fake ProviderPort + Fake Clock | ms |
 | 単体 | `manager/bot`(コマンド解釈、文言、フォーム定義) | Fake Usecase | ms |
-| 単体 | `shared/markup`, `shared/channelname`, `shared/rpcauth` | 純粋関数・インターセプタの単体テスト | ms |
+| 単体 | `shared/markup`, `shared/channelname`, `shared/rpcauth`, `shared/rpcsrv` | 純粋関数・インターセプタの単体テスト | ms |
 | 統合 | `manager/store/mongo` | testcontainers `mongo:7` | 秒 |
 | 統合 | `manager/scheduler` | testcontainers + Fake ハンドラ | 秒 |
 | 統合 | `manager/rpc`(Console 系サービス) | `bufconn` で gRPC サーバーを起動し、生成クライアントで呼ぶ。認証インターセプタ・protovalidate を通す | 秒 |
+| 統合 | `manager/app` | testcontainers `mongo:7` + 到達できない Provider アドレスで `serve` を起動し、`/healthz`・`/readyz`・gRPC Health・Provider offline・積み残しジョブの実行を検証 | 秒 |
 | 統合 | `manager/gateway` | `httptest` でゲートウェイ + HTTP ミドルウェアを起動し、Cookie 付き REST → gRPC → レスポンス JSON / エラー JSON / `Set-Cookie` を検証 | 秒 |
 | 統合 | `manager/rpc` + `manager/providerclient` | `bufconn` で ManagerService と `fake.ProviderServer` を起動し、相互呼び出し(HandleAction 中の AddMember)を検証 | 秒 |
 | 統合 | `provider/runtime` | `bufconn` で Fake ManagerService を起動し、`fake.Adapter` と組み合わせて疎通再試行・`GetInfo` 応答・ACK タイミング・DM フォールバックを検証 | 秒 |
