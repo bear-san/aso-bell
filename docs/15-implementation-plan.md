@@ -16,15 +16,17 @@
 
 ## M1. ドメインとストア(2 日)
 
-- [ ] `internal/manager/domain`: Event / Participation / ReminderPolicy / Workspace / ProviderStatus / ChatIdentity / LinkToken / Job と検証ロジック
-- [ ] リマインド時刻計算
-- [ ] `internal/manager/usecase/ports.go`: Repository / ProviderPort / Clock インターフェース
-- [ ] `internal/manager/store/mongo`: 各リポジトリ、`EnsureIndexes`、`UpsertParticipation`、`ClaimJob`、`CancelJobsByEvent`、`ConsumeLinkToken`
-- [ ] 契約テスト `storetest` を Mongo 実装に対して実行
+- [x] `internal/manager/domain`: Event / Participation / ReminderPolicy / Workspace / ProviderStatus / ChatIdentity / LinkToken / Job と検証ロジック
+- [x] リマインド時刻計算
+- [x] `internal/shared/channelname`: NFKC 正規化を含むチャンネル名生成(→ [research/text-normalization.md](research/text-normalization.md))
+- [x] `internal/manager/usecase/ports.go`: Repository / Clock インターフェース(`ProviderPort` は proto 生成型と usecase の形が決まる M2 へ繰り延べ)
+- [x] `internal/manager/store/mongo`: 各リポジトリ、`EnsureIndexes`、`UpsertParticipation`、`ClaimJob`、`CancelJobsByEvent`、`ConsumeLinkToken`
+- [x] 契約テスト `storetest` を Mongo 実装に対して実行
 - 完了条件: ドメイン単体テスト + Mongo 統合テストが緑
 
 ## M2. Manager コア(3 日)
 
+- [ ] `internal/manager/usecase/ports.go`: `ProviderPort` インターフェース(M1 から繰り延べ)
 - [ ] `internal/provider/fake`: `fake.ProviderServer`(bufconn 用)
 - [ ] `internal/manager/providerclient`: `ProviderPort` の gRPC 実装、ステータス → ドメインエラー変換、`GetInfo` による状態監視と種別照合
 - [ ] `internal/manager/bot`: 文言テンプレート、フォーム定義、コマンドディスパッチ、日時・ペースのパース
