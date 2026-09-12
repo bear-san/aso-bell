@@ -25,9 +25,10 @@ const (
 	dbNameSalt   = 1_000_000
 )
 
-// StartMongo は testcontainers で MongoDB を起動し、テストごとに固有の Database を返す。
+// StartMongoURI は testcontainers で MongoDB を起動し、接続 URI とテストごとに固有の DB 名を返す。
+// 設定から自分で接続する側(app など)のテストで使う。
 // -short 指定時はスキップし、Docker 無しでも単体テストが回るようにする。
-func StartMongo(t *testing.T) *mongo.Database {
+func StartMongoURI(t *testing.T) (string, string) {
 	t.Helper()
 	if testing.Short() {
 		t.Skip("skipping testcontainers test in short mode")
@@ -42,12 +43,24 @@ func StartMongo(t *testing.T) *mongo.Database {
 	uri, err := ctr.ConnectionString(ctx)
 	require.NoError(t, err)
 
+	return uri, dbName(t)
+}
+
+// StartMongo は testcontainers で MongoDB を起動し、テストごとに固有の Database を返す。
+func StartMongo(t *testing.T) *mongo.Database {
+	t.Helper()
+
+	uri, name := StartMongoURI(t)
+
+	ctx, cancel := context.WithTimeout(context.Background(), startTimeout)
+	defer cancel()
+
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = client.Disconnect(context.Background()) })
 	require.NoError(t, client.Ping(ctx, readpref.Primary()))
 
-	return client.Database(dbName(t))
+	return client.Database(name)
 }
 
 // dbName は Mongo の DB 名制約(64 バイト未満、/ \ . " $ 空白 禁止)に合わせてテスト名を整形する。
