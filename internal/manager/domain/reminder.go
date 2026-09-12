@@ -31,6 +31,9 @@ const (
 	defaultOffsetSameDay = 3 * time.Hour
 )
 
+// DefaultFinalOffset は interval モードで最後に送るリマインドの開始前オフセット既定値。
+const DefaultFinalOffset = defaultOffsetSameDay
+
 // ReminderPolicy はイベントのリマインド投稿ペース。
 type ReminderPolicy struct {
 	Mode        ReminderMode

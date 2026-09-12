@@ -6,6 +6,7 @@ import (
 	"context"
 	"time"
 
+	asobellv1 "github.com/bear-san/aso-bell/gen/asobell/v1"
 	"github.com/bear-san/aso-bell/internal/manager/domain"
 )
 
@@ -187,4 +188,104 @@ type SessionRepository interface {
 type OAuthStateRepository interface {
 	Create(ctx context.Context, state domain.OAuthState) error
 	Consume(ctx context.Context, state string, now time.Time) (*domain.OAuthState, error)
+}
+
+// WorkspaceRef は Provider 呼び出し時のワークスペース参照。Provider は ExternalID だけを解釈する。
+type WorkspaceRef struct {
+	WorkspaceID string
+	ExternalID  string
+}
+
+// CreateChannelInput はイベント用プライベートチャンネルの作成条件。
+type CreateChannelInput struct {
+	// Name は channelname で正規化済みの名前。Provider は長さと文字種の最終調整のみ行う。
+	Name      string
+	Topic     string
+	MemberIDs []string
+	// CategoryID は Discord のみ有効。空なら未指定。
+	CategoryID string
+}
+
+// ChannelInfo はチャットツール上のチャンネル。
+type ChannelInfo struct {
+	ID        string
+	Name      string
+	IsPrivate bool
+	Archived  bool
+}
+
+// UserInfo はチャットツール上のユーザー。
+type UserInfo struct {
+	ID          string
+	DisplayName string
+	IsBot       bool
+}
+
+// ProviderWorkspace は Provider が把握しているワークスペース。
+type ProviderWorkspace struct {
+	ExternalID string
+	Name       string
+}
+
+// ProviderInfo は GetInfo の応答。
+type ProviderInfo struct {
+	Kind         domain.ProviderKind
+	Capabilities domain.Capabilities
+	Version      string
+	BotUserID    string
+	// Connected はチャットツールへの接続が確立しているか。
+	Connected bool
+}
+
+// ProviderPort は Manager から対の Provider を操作するための出力ポート。
+// 実装は providerclient(gRPC)とテスト用のフェイク。エラーは domain のセンチネルへ変換済みで返す。
+type ProviderPort interface {
+	GetInfo(ctx context.Context) (ProviderInfo, error)
+	ListConnectedWorkspaces(ctx context.Context) ([]ProviderWorkspace, error)
+
+	CreatePrivateChannel(ctx context.Context, ws WorkspaceRef, in CreateChannelInput) (ChannelInfo, error)
+	// AddMember は既にメンバーだった場合 alreadyMember=true を返す(エラーにしない)。
+	AddMember(ctx context.Context, ws WorkspaceRef, channelID, userID string) (bool, error)
+	// RemoveMember はメンバーでなかった場合 wasMember=false を返す(エラーにしない)。
+	RemoveMember(ctx context.Context, ws WorkspaceRef, channelID, userID string) (bool, error)
+	ArchiveChannel(ctx context.Context, ws WorkspaceRef, channelID, archiveCategoryID string) (ChannelInfo, error)
+	ListChannels(ctx context.Context, ws WorkspaceRef, pageToken string, pageSize int) ([]ChannelInfo, string, error)
+
+	PostMessage(
+		ctx context.Context,
+		ws WorkspaceRef,
+		channelID string,
+		msg *asobellv1.Message,
+	) (domain.MessageRef, error)
+	UpdateMessage(ctx context.Context, ws WorkspaceRef, ref domain.MessageRef, msg *asobellv1.Message) error
+	PostEphemeral(ctx context.Context, ws WorkspaceRef, channelID, userID string, msg *asobellv1.Message) error
+	SendDirectMessage(
+		ctx context.Context,
+		ws WorkspaceRef,
+		userID string,
+		msg *asobellv1.Message,
+	) (domain.MessageRef, error)
+	PinMessage(ctx context.Context, ws WorkspaceRef, ref domain.MessageRef) error
+	UnpinMessage(ctx context.Context, ws WorkspaceRef, ref domain.MessageRef) error
+
+	ResolveUser(ctx context.Context, ws WorkspaceRef, userID string) (UserInfo, error)
+}
+
+// ProviderStatusPort は対になる Provider の観測状態を返す。実装は providerclient.Monitor。
+// ユースケースは offline の Provider に対する操作を受け付けないため、状態監視の結果を参照する。
+type ProviderStatusPort interface {
+	State() domain.ProviderState
+}
+
+// MessageRenderer はイベントに関する投稿文を組み立てる。実装は bot パッケージ。
+// 文言とユースケースを分けるためにポートとして切り、依存の向きを usecase ← bot に保つ(docs/02 §3.5)。
+type MessageRenderer interface {
+	Announcement(ev *domain.Event, peek time.Duration) *asobellv1.Message
+	Summary(ev *domain.Event) *asobellv1.Message
+	Reminder(ev *domain.Event, now time.Time, participantIDs []string) *asobellv1.Message
+	RecruitReminder(ev *domain.Event, now time.Time, peek time.Duration) *asobellv1.Message
+	Closing(ev *domain.Event) *asobellv1.Message
+	Transition(kind domain.TransitionKind, userID string, count int, expiresAt time.Time) *asobellv1.Message
+	Left(userID string, count int) *asobellv1.Message
+	RemovedByOrganizer(userID string) *asobellv1.Message
 }
