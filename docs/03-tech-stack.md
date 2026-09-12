@@ -27,6 +27,7 @@
 | モック | `go.uber.org/mock` | 3,404 | Apache-2.0 | v0.6.0 | 手書き Fake を優先し、必要時のみ |
 | ログ | `log/slog` | – | (stdlib) | – | |
 | 乱数・ハッシュ | `crypto/rand`, `crypto/sha256` | – | (stdlib) | – | 連携トークン・セッション ID |
+| Unicode 正規化 | `golang.org/x/text` | 807 | **BSD-3-Clause** | v0.41.0 | チャンネル名の NFKC 正規化。Go 公式。例外採用(→ §2.1) |
 | Lint | `golangci-lint` | 19,367 | **GPL-3.0** | v2.13.2 | 開発時ツール(→ §2.2) |
 | フォーマッタ | `gofmt` + `goimports` | – | BSD-3 | – | gofumpt は使わない(BSD-3 の追加依存を避ける) |
 | タスクランナー | `github.com/go-task/task` | 16,123 | MIT | v3.53.1 | |
@@ -90,6 +91,7 @@
 | `golang.org/x/oauth2` | BSD-3 | Go 公式。go-oidc の依存で回避不能 |
 | `google.golang.org/protobuf` | BSD-3 | Google 公式。grpc-go の依存で回避不能 |
 | `grpc-ecosystem/grpc-gateway` | BSD-3 | 要件で指定されたツール。Apache/MIT の同等品なし |
+| `golang.org/x/text` | BSD-3 | Go 公式。NFKC 正規化は標準ライブラリに無く、grpc-gateway 等の依存としても既に推移的に入る |
 
 この例外が受け入れられない場合、Discord は disgo に差し替える(Provider 抽象の範囲内で吸収可能)。Slack については BSD-2 を受け入れる以外に現実的な選択肢がない。
 
@@ -127,6 +129,7 @@ v0.29.0(2025-05)のピン留めエンドポイントは Discord 側で非推奨�
 | net/http | Go 1.22+ の `ServeMux` はメソッド付きパターン(`GET /auth/google/callback`)と `{id}` を解決。graceful shutdown は `http.Server.Shutdown` | 同 §2 |
 | go-oidc | `oidc.NewProvider(ctx, "https://accounts.google.com")`、`provider.Verifier(&oidc.Config{ClientID})`、PKCE は `oauth2.GenerateVerifier` / `S256ChallengeOption` / `VerifierOption` | 同 §4 |
 | testcontainers | `mongodb.Run(ctx, "mongo:7")`、`ConnectionString(ctx)`。replica set は不要 | 同 §8 |
+| x/text 正規化 | `norm.NFKC.String(s)` が NFKC 正規化。`norm.Form` は `NFC` / `NFD` / `NFKC` / `NFKD` の 4 値で、`String` / `Bytes` / `IsNormal` を持つ | [research/text-normalization.md](research/text-normalization.md) |
 | grpc-gateway | `runtime.NewServeMux(WithMetadata, WithForwardResponseOption, WithMarshalerOption(JSONPb), WithErrorHandler)`、`RegisterXxxHandler(ctx, mux, conn)`(`HandlerServer` はインターセプタを迂回するため不使用)、`HTTPStatusFromCode`(FailedPrecondition→400, Unavailable→503 等)、`Cookie` は既定で `grpcgateway-cookie` として転送、`Authorization` は常に `authorization` へ転送 | [research/grpc-gateway.md](research/grpc-gateway.md) |
 | protovalidate | `buf.validate.field` の `string.{min_len,max_len,pattern}`、`duration.{gte,lte}`、`repeated.{min_items,max_items,items}`、`required`、`oneof.required`、message 単位の `cel`。Go は `protovalidate.New()` + `Validate(msg)` | 同 |
 | protojson | int64 は文字列、enum は名前、Timestamp は RFC 3339、Duration は `"604800s"`、FieldMask は camelCase | 同 |

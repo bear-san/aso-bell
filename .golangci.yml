@@ -10,6 +10,8 @@
 #   - version.Version は -ldflags で差し替えるパッケージ変数のため gochecknoglobals の対象外に
 #   - run.timeout を追加
 #   - linters.exclusions.warn-unused を false に(ベース由来の汎用ルールが未使用でも警告しない)
+#   - BSON のフィールド名・演算子リテラルを goconst の対象外に(store/mongo)
+#   - テスト支援パッケージ(storetest / adaptertest / testutil / fake)に _test.go と同じ緩和を適用
 
 # This file is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021-2025 Marat Reymers
@@ -511,3 +513,17 @@ linters:
           - gosec
           - noctx
           - wrapcheck
+      # storetest などはテスト専用の支援パッケージで、_test.go と同じ性質を持つため同じ緩和を適用する。
+      - path: 'internal/(manager|provider)/(storetest|adaptertest|testutil|fake)/'
+        linters:
+          - dupl
+          - errcheck
+          - funlen
+          - goconst
+          - gosec
+          - mnd
+          - wrapcheck
+      # "_id" や "$set" は MongoDB ドライバの語彙そのもので、定数に置き換えるとクエリが読めなくなる。
+      - path: 'internal/manager/store/mongo/'
+        linters:
+          - goconst

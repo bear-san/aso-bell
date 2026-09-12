@@ -33,5 +33,5 @@ jobs:
       - run: go mod tidy && git diff --exit-code -- go.mod go.sum
       - uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.12.2
+          version: v2.13.2
       - run: go test -race -count=1 ./...
