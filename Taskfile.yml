@@ -1,0 +1,78 @@
+version: "3"
+
+vars:
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo dev
+  LDFLAGS: -s -w -X github.com/bear-san/aso-bell/internal/shared/version.Version={{.VERSION}}
+
+tasks:
+  default:
+    cmds: [task --list]
+
+  gen:
+    desc: Regenerate gRPC / gateway / OpenAPI code from proto
+    cmds:
+      - buf generate
+
+  gen:check:
+    desc: Fail if generated code is stale
+    cmds:
+      - buf generate
+      - git diff --exit-code -- gen/
+
+  tidy:
+    cmds:
+      - go mod tidy
+
+  tidy:check:
+    cmds:
+      - go mod tidy
+      - git diff --exit-code -- go.mod go.sum
+
+  fmt:
+    desc: goimports + golines による整形
+    cmds:
+      - golangci-lint fmt ./...
+
+  lint:
+    desc: buf lint + golangci-lint
+    cmds:
+      - buf lint
+      - golangci-lint run ./...
+
+  build:
+    desc: Build the three binaries into bin/
+    cmds:
+      - CGO_ENABLED=0 go build -trimpath -ldflags="{{.LDFLAGS}}" -o bin/ ./cmd/...
+
+  test:
+    desc: All Go tests (needs Docker for testcontainers)
+    cmds:
+      - go test -race -count=1 ./...
+
+  test:unit:
+    desc: Go tests without Docker-backed integration tests
+    cmds:
+      - go test -race -short ./...
+
+  cover:
+    cmds:
+      - go test -race -count=1 -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out | tail -1
+
+  check:
+    desc: Everything CI runs
+    cmds:
+      - task: gen:check
+      - task: tidy:check
+      - task: lint
+      - task: test
+
+  dev:mongo:
+    desc: Start MongoDB for local development
+    cmds:
+      - docker compose -f compose.dev.yaml up -d
+
+  dev:mongo:down:
+    cmds:
+      - docker compose -f compose.dev.yaml down

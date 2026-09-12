@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package asobell.v1;
 
-option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+option go_package = "github.com/bear-san/aso-bell/gen/asobell/v1;asobellv1";
 
 // ProviderKind はチャットツールの種別。
 enum ProviderKind {

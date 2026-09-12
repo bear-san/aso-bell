@@ -1,0 +1,13 @@
+/bin/
+/dist/
+/coverage.out
+/*.env
+/deploy/*.env
+/web/node_modules/
+/web/dist/
+/web/coverage/
+/web/playwright-report/
+/web/test-results/
+.DS_Store
+.idea/
+.vscode/

@@ -7,7 +7,7 @@ import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+option go_package = "github.com/bear-san/aso-bell/gen/asobell/v1;asobellv1";
 
 // AccountService はログインユーザー自身と、チャット ID の連携を扱う。
 // Google ログイン自体(リダイレクトフロー)は gRPC ではなく Manager の HTTP ハンドラ /auth/* が担う。

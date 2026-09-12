@@ -2,6 +2,8 @@
 
 Slack / Discord 上で遊びの予定を立ち上げ、連絡用プライベートチャンネルと参加者・リマインドを管理する Bot と WebConsole の設計。すべての API は Protocol Buffers で定義し、フロントエンド向けは grpc-gateway で REST 化する。Manager と Provider(チャットツール接続)は別コンテナで稼働し、gRPC で通信する。1 グループにつき Manager 1 つと Provider 1 つ(Slack または Discord)を対で配置する。
 
+エージェント・開発者向けの作業指示は [../AGENTS.md](../AGENTS.md) にまとめている(`CLAUDE.md` はそれを参照するのみ)。
+
 ## 読む順番
 
 | # | ファイル | 内容 |

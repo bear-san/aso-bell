@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  proto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          setup_only: true
+          version: 1.67.0
+      - run: buf lint
+      - run: buf breaking --against 'https://github.com/${{ github.repository }}.git#branch=main'
+        if: github.event_name == 'pull_request'
+      - run: buf generate
+      - run: git diff --exit-code -- gen/
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go mod tidy && git diff --exit-code -- go.mod go.sum
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.12.2
+      - run: go test -race -count=1 ./...

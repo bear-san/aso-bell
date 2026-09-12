@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+option go_package = "github.com/bear-san/aso-bell/gen/asobell/v1;asobellv1";
 
 // EventService は WebConsole 向けのイベント操作。grpc-gateway で /api/v1 配下の REST として公開する。
 // 認証はセッション Cookie(ゲートウェイが authorization メタデータへ変換)。

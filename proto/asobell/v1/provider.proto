@@ -4,7 +4,7 @@ package asobell.v1;
 
 import "asobell/v1/common.proto";
 
-option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+option go_package = "github.com/bear-san/aso-bell/gen/asobell/v1;asobellv1";
 
 // ProviderService は Provider が公開し、対になる 1 つの Manager が呼び出す。
 // すべての RPC は冪等に実装する(Manager 側のリトライとジョブ再実行に備える)。

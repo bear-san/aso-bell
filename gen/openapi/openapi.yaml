@@ -1,0 +1,1197 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: aso-bell Console API
+    version: 1.0.0
+paths:
+    /api/v1/events:
+        get:
+            tags:
+                - EventService
+            operationId: EventService_ListEvents
+            parameters:
+                - name: workspaceId
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    enum:
+                        - EVENT_STATUS_UNSPECIFIED
+                        - EVENT_STATUS_OPEN
+                        - EVENT_STATUS_ENDED
+                        - EVENT_STATUS_CANCELED
+                    type: string
+                    format: enum
+                - name: mine
+                  in: query
+                  description: mine が true なら、自分の連携済みチャット ID が主催または参加しているイベントに絞る。
+                  schema:
+                    type: boolean
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.ListEventsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+        post:
+            tags:
+                - EventService
+            description: |-
+                CreateEvent の主催者はログインユーザーの当該ワークスペースにおける連携済みチャット ID。
+                 未連携なら FAILED_PRECONDITION(reason IDENTITY_REQUIRED)。
+            operationId: EventService_CreateEvent
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.CreateEventRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.CreateEventResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}:
+        get:
+            tags:
+                - EventService
+            operationId: EventService_GetEvent
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.GetEventResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+        patch:
+            tags:
+                - EventService
+            operationId: EventService_UpdateEvent
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.UpdateEventRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.UpdateEventResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}/participants:
+        get:
+            tags:
+                - EventService
+            operationId: EventService_ListParticipants
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.ListParticipantsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}/participants/{chatUserId}:
+        delete:
+            tags:
+                - EventService
+            operationId: EventService_RemoveParticipant
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: chatUserId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.RemoveParticipantResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}/reminder-policy:
+        put:
+            tags:
+                - EventService
+            operationId: EventService_SetReminderPolicy
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.ReminderPolicy'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.SetReminderPolicyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}/reminders:
+        get:
+            tags:
+                - EventService
+            operationId: EventService_ListReminders
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.ListRemindersResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}/reminders:send:
+        post:
+            tags:
+                - EventService
+            operationId: EventService_SendReminderNow
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.SendReminderNowRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.SendReminderNowResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}:cancel:
+        post:
+            tags:
+                - EventService
+            operationId: EventService_CancelEvent
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.CancelEventRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.CancelEventResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/events/{eventId}:end:
+        post:
+            tags:
+                - EventService
+            description: EndEvent / CancelEvent は既に終了済みでもエラーにせず現在の状態を返す。
+            operationId: EventService_EndEvent
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.EndEventRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.EndEventResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/link-tokens/{token}:
+        get:
+            tags:
+                - AccountService
+            description: GetLinkToken は連携ページ表示用にトークンの内容を返す。トークンは消費しない。
+            operationId: AccountService_GetLinkToken
+            parameters:
+                - name: token
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.GetLinkTokenResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/me:
+        get:
+            tags:
+                - AccountService
+            operationId: AccountService_GetMe
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.GetMeResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/me/identities:
+        get:
+            tags:
+                - AccountService
+            operationId: AccountService_ListIdentities
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.ListIdentitiesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/me/identities/{identityId}:
+        delete:
+            tags:
+                - AccountService
+            operationId: AccountService_UnlinkIdentity
+            parameters:
+                - name: identityId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.UnlinkIdentityResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/me/identities:link:
+        post:
+            tags:
+                - AccountService
+            description: LinkIdentity は連携トークンを消費してチャットユーザーをログインユーザーに紐づける。
+            operationId: AccountService_LinkIdentity
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.LinkIdentityRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.LinkIdentityResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/me:logout:
+        post:
+            tags:
+                - AccountService
+            description: Logout はセッションを破棄する。ゲートウェイが Set-Cookie で Cookie を失効させる。
+            operationId: AccountService_Logout
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.LogoutRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.LogoutResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/provider:
+        get:
+            tags:
+                - ProviderStatusService
+            description: GetProviderStatus は Provider 未接続でもエラーにせず status OFFLINE を返す。
+            operationId: ProviderStatusService_GetProviderStatus
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.GetProviderStatusResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/workspaces:
+        get:
+            tags:
+                - WorkspaceService
+            operationId: WorkspaceService_ListWorkspaces
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.ListWorkspacesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/workspaces/{workspaceId}:
+        get:
+            tags:
+                - WorkspaceService
+            operationId: WorkspaceService_GetWorkspace
+            parameters:
+                - name: workspaceId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.GetWorkspaceResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/workspaces/{workspaceId}/channels:
+        get:
+            tags:
+                - WorkspaceService
+            description: ListWorkspaceChannels は Provider に問い合わせる。Provider が offline なら UNAVAILABLE。
+            operationId: WorkspaceService_ListWorkspaceChannels
+            parameters:
+                - name: workspaceId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.ListWorkspaceChannelsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+    /api/v1/workspaces/{workspaceId}/settings:
+        patch:
+            tags:
+                - WorkspaceService
+            operationId: WorkspaceService_UpdateWorkspaceSettings
+            parameters:
+                - name: workspaceId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asobell.v1.UpdateWorkspaceSettingsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asobell.v1.UpdateWorkspaceSettingsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/google.rpc.Status'
+components:
+    schemas:
+        asobell.v1.CancelEventRequest:
+            type: object
+            properties:
+                eventId:
+                    type: string
+        asobell.v1.CancelEventResponse:
+            type: object
+            properties:
+                event:
+                    $ref: '#/components/schemas/asobell.v1.Event'
+        asobell.v1.Capabilities:
+            type: object
+            properties:
+                forms:
+                    type: boolean
+                    description: 'forms: Form を描画できる(Slack モーダル)。'
+                ephemeral:
+                    type: boolean
+                    description: 'ephemeral: 本人にだけ見える返信ができる。'
+                directMessage:
+                    type: boolean
+                    description: 'direct_message: Bot からユーザーへ DM を送れる。'
+        asobell.v1.ChannelInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                isPrivate:
+                    type: boolean
+                archived:
+                    type: boolean
+        asobell.v1.ChannelRef:
+            type: object
+            properties:
+                channelId:
+                    type: string
+                name:
+                    type: string
+                archived:
+                    type: boolean
+        asobell.v1.ChatIdentity:
+            type: object
+            properties:
+                identityId:
+                    type: string
+                workspaceId:
+                    type: string
+                provider:
+                    enum:
+                        - PROVIDER_KIND_UNSPECIFIED
+                        - PROVIDER_KIND_SLACK
+                        - PROVIDER_KIND_DISCORD
+                    type: string
+                    format: enum
+                workspaceName:
+                    type: string
+                chatUserId:
+                    type: string
+                displayName:
+                    type: string
+                linkedAt:
+                    type: string
+                    format: date-time
+        asobell.v1.ChatUserRef:
+            type: object
+            properties:
+                userId:
+                    type: string
+                displayName:
+                    type: string
+        asobell.v1.ConsoleUser:
+            type: object
+            properties:
+                userId:
+                    type: string
+                email:
+                    type: string
+                name:
+                    type: string
+                picture:
+                    type: string
+        asobell.v1.CreateEventRequest:
+            type: object
+            properties:
+                workspaceId:
+                    type: string
+                originChannelId:
+                    type: string
+                    description: origin_channel_id は立ち上げメッセージを投稿するチャンネル。
+                title:
+                    type: string
+                description:
+                    type: string
+                location:
+                    type: string
+                startsAt:
+                    type: string
+                    format: date-time
+                endsAt:
+                    type: string
+                    format: date-time
+                reminderPolicy:
+                    allOf:
+                        - $ref: '#/components/schemas/asobell.v1.ReminderPolicy'
+                    description: reminder_policy 省略時はワークスペースの既定を使う。
+        asobell.v1.CreateEventResponse:
+            type: object
+            properties:
+                event:
+                    $ref: '#/components/schemas/asobell.v1.Event'
+        asobell.v1.DiscordWorkspaceSettings:
+            type: object
+            properties:
+                eventCategoryId:
+                    type: string
+                archiveCategoryId:
+                    type: string
+        asobell.v1.EndEventRequest:
+            type: object
+            properties:
+                eventId:
+                    type: string
+        asobell.v1.EndEventResponse:
+            type: object
+            properties:
+                event:
+                    $ref: '#/components/schemas/asobell.v1.Event'
+        asobell.v1.Event:
+            type: object
+            properties:
+                eventId:
+                    type: string
+                workspaceId:
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
+                location:
+                    type: string
+                startsAt:
+                    type: string
+                    format: date-time
+                endsAt:
+                    type: string
+                    format: date-time
+                status:
+                    enum:
+                        - EVENT_STATUS_UNSPECIFIED
+                        - EVENT_STATUS_OPEN
+                        - EVENT_STATUS_ENDED
+                        - EVENT_STATUS_CANCELED
+                    type: string
+                    format: enum
+                organizer:
+                    $ref: '#/components/schemas/asobell.v1.ChatUserRef'
+                originChannelId:
+                    type: string
+                channel:
+                    $ref: '#/components/schemas/asobell.v1.ChannelRef'
+                reminderPolicy:
+                    $ref: '#/components/schemas/asobell.v1.ReminderPolicy'
+                participantCount:
+                    type: integer
+                    format: int32
+                endedAt:
+                    type: string
+                    format: date-time
+                endReason:
+                    enum:
+                        - END_REASON_UNSPECIFIED
+                        - END_REASON_MANUAL
+                        - END_REASON_AUTO
+                        - END_REASON_CANCELED
+                        - END_REASON_PROVISION_FAILED
+                        - END_REASON_CHANNEL_LOST
+                    type: string
+                    format: enum
+                createdVia:
+                    enum:
+                        - CREATED_VIA_UNSPECIFIED
+                        - CREATED_VIA_CHAT
+                        - CREATED_VIA_CONSOLE
+                    type: string
+                    format: enum
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+        asobell.v1.GetEventResponse:
+            type: object
+            properties:
+                event:
+                    $ref: '#/components/schemas/asobell.v1.Event'
+        asobell.v1.GetLinkTokenResponse:
+            type: object
+            properties:
+                provider:
+                    enum:
+                        - PROVIDER_KIND_UNSPECIFIED
+                        - PROVIDER_KIND_SLACK
+                        - PROVIDER_KIND_DISCORD
+                    type: string
+                    format: enum
+                workspaceName:
+                    type: string
+                displayName:
+                    type: string
+                expiresAt:
+                    type: string
+                    format: date-time
+                alreadyLinked:
+                    type: boolean
+                    description: already_linked はこのチャットユーザーが既に誰かのアカウントと連携済みか。
+        asobell.v1.GetMeResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/asobell.v1.ConsoleUser'
+        asobell.v1.GetProviderStatusResponse:
+            type: object
+            properties:
+                kind:
+                    enum:
+                        - PROVIDER_KIND_UNSPECIFIED
+                        - PROVIDER_KIND_SLACK
+                        - PROVIDER_KIND_DISCORD
+                    type: string
+                    description: kind は一度も接続できていなければ UNSPECIFIED。
+                    format: enum
+                address:
+                    type: string
+                status:
+                    enum:
+                        - PROVIDER_STATUS_UNSPECIFIED
+                        - PROVIDER_STATUS_ONLINE
+                        - PROVIDER_STATUS_OFFLINE
+                    type: string
+                    format: enum
+                connected:
+                    type: boolean
+                capabilities:
+                    $ref: '#/components/schemas/asobell.v1.Capabilities'
+                version:
+                    type: string
+                botUserId:
+                    type: string
+                workspaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.WorkspaceInfo'
+                lastSeenAt:
+                    type: string
+                    format: date-time
+        asobell.v1.GetWorkspaceResponse:
+            type: object
+            properties:
+                workspace:
+                    $ref: '#/components/schemas/asobell.v1.Workspace'
+        asobell.v1.IntervalPolicy:
+            type: object
+            properties:
+                every:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                at:
+                    type: string
+                    description: at は "HH:MM"。
+                finalOffset:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+            description: IntervalPolicy はワークスペース TZ の at 時刻に every 間隔で投稿し、最後に final_offset 前に 1 回投稿する。
+        asobell.v1.LinkIdentityRequest:
+            type: object
+            properties:
+                token:
+                    type: string
+        asobell.v1.LinkIdentityResponse:
+            type: object
+            properties:
+                identity:
+                    $ref: '#/components/schemas/asobell.v1.ChatIdentity'
+        asobell.v1.ListEventsResponse:
+            type: object
+            properties:
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.Event'
+                nextPageToken:
+                    type: string
+        asobell.v1.ListIdentitiesResponse:
+            type: object
+            properties:
+                identities:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.ChatIdentity'
+        asobell.v1.ListParticipantsResponse:
+            type: object
+            properties:
+                participants:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.Participation'
+        asobell.v1.ListRemindersResponse:
+            type: object
+            properties:
+                scheduled:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.ScheduledReminder'
+                history:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.ReminderLog'
+        asobell.v1.ListWorkspaceChannelsResponse:
+            type: object
+            properties:
+                channels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.ChannelInfo'
+        asobell.v1.ListWorkspacesResponse:
+            type: object
+            properties:
+                workspaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.Workspace'
+        asobell.v1.LogoutRequest:
+            type: object
+            properties: {}
+        asobell.v1.LogoutResponse:
+            type: object
+            properties: {}
+        asobell.v1.NonePolicy:
+            type: object
+            properties: {}
+        asobell.v1.OffsetsPolicy:
+            type: object
+            properties:
+                offsets:
+                    type: array
+                    items:
+                        pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                        type: string
+                        description: Represents a a duration between -315,576,000,000s and 315,576,000,000s (around 10000 years). Precision is in nanoseconds. 1 nanosecond is represented as 0.000000001s
+            description: OffsetsPolicy は開始時刻の各 offset 前に 1 回ずつ投稿する。
+        asobell.v1.Participation:
+            type: object
+            properties:
+                chatUserId:
+                    type: string
+                displayName:
+                    type: string
+                role:
+                    enum:
+                        - PARTICIPATION_ROLE_UNSPECIFIED
+                        - PARTICIPATION_ROLE_PARTICIPANT
+                        - PARTICIPATION_ROLE_PEEKER
+                    type: string
+                    format: enum
+                status:
+                    enum:
+                        - PARTICIPATION_STATUS_UNSPECIFIED
+                        - PARTICIPATION_STATUS_ACTIVE
+                        - PARTICIPATION_STATUS_EXPIRED
+                        - PARTICIPATION_STATUS_REMOVED
+                        - PARTICIPATION_STATUS_LEFT
+                    type: string
+                    format: enum
+                joinedAt:
+                    type: string
+                    format: date-time
+                expiresAt:
+                    type: string
+                    format: date-time
+        asobell.v1.ReminderLog:
+            type: object
+            properties:
+                sequence:
+                    type: integer
+                    format: int32
+                sentAt:
+                    type: string
+                    format: date-time
+                targets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/asobell.v1.ReminderTarget'
+        asobell.v1.ReminderPolicy:
+            type: object
+            properties:
+                offsets:
+                    $ref: '#/components/schemas/asobell.v1.OffsetsPolicy'
+                interval:
+                    $ref: '#/components/schemas/asobell.v1.IntervalPolicy'
+                none:
+                    $ref: '#/components/schemas/asobell.v1.NonePolicy'
+            description: 'ReminderPolicy はリマインドの投稿ペース。JSON では {"offsets": {...}} / {"interval": {...}} / {"none": {}} のいずれか。'
+        asobell.v1.ReminderTarget:
+            type: object
+            properties:
+                kind:
+                    enum:
+                        - REMINDER_TARGET_KIND_UNSPECIFIED
+                        - REMINDER_TARGET_KIND_EVENT
+                        - REMINDER_TARGET_KIND_RECRUIT
+                    type: string
+                    format: enum
+                channelId:
+                    type: string
+                messageId:
+                    type: string
+                ok:
+                    type: boolean
+                error:
+                    type: string
+        asobell.v1.RemoveParticipantResponse:
+            type: object
+            properties: {}
+        asobell.v1.ScheduledReminder:
+            type: object
+            properties:
+                sequence:
+                    type: integer
+                    format: int32
+                runAt:
+                    type: string
+                    format: date-time
+                status:
+                    enum:
+                        - JOB_STATUS_UNSPECIFIED
+                        - JOB_STATUS_PENDING
+                        - JOB_STATUS_RUNNING
+                        - JOB_STATUS_DONE
+                        - JOB_STATUS_FAILED
+                        - JOB_STATUS_CANCELED
+                    type: string
+                    format: enum
+        asobell.v1.SendReminderNowRequest:
+            type: object
+            properties:
+                eventId:
+                    type: string
+        asobell.v1.SendReminderNowResponse:
+            type: object
+            properties: {}
+        asobell.v1.SetReminderPolicyResponse:
+            type: object
+            properties:
+                event:
+                    $ref: '#/components/schemas/asobell.v1.Event'
+        asobell.v1.UnlinkIdentityResponse:
+            type: object
+            properties: {}
+        asobell.v1.UpdateEventRequest:
+            type: object
+            properties:
+                eventId:
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
+                location:
+                    type: string
+                clearLocation:
+                    type: boolean
+                startsAt:
+                    type: string
+                    format: date-time
+                endsAt:
+                    type: string
+                    format: date-time
+                clearEndsAt:
+                    type: boolean
+            description: |-
+                UpdateEventRequest は設定されたフィールドのみ更新する(proto3 optional)。
+                 location / ends_at を空にしたい場合は clear_location / clear_ends_at を true にする。
+        asobell.v1.UpdateEventResponse:
+            type: object
+            properties:
+                event:
+                    $ref: '#/components/schemas/asobell.v1.Event'
+        asobell.v1.UpdateWorkspaceSettingsRequest:
+            type: object
+            properties:
+                workspaceId:
+                    type: string
+                recruitChannelId:
+                    type: string
+                clearRecruitChannel:
+                    type: boolean
+                timezone:
+                    type: string
+                defaultReminderPolicy:
+                    $ref: '#/components/schemas/asobell.v1.ReminderPolicy'
+                peekDuration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                autoEndGrace:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                channelNamePrefix:
+                    type: string
+                defaultStartTime:
+                    type: string
+                discord:
+                    $ref: '#/components/schemas/asobell.v1.DiscordWorkspaceSettings'
+            description: UpdateWorkspaceSettingsRequest は設定されたフィールドのみ更新する。
+        asobell.v1.UpdateWorkspaceSettingsResponse:
+            type: object
+            properties:
+                workspace:
+                    $ref: '#/components/schemas/asobell.v1.Workspace'
+        asobell.v1.Workspace:
+            type: object
+            properties:
+                workspaceId:
+                    type: string
+                provider:
+                    enum:
+                        - PROVIDER_KIND_UNSPECIFIED
+                        - PROVIDER_KIND_SLACK
+                        - PROVIDER_KIND_DISCORD
+                    type: string
+                    format: enum
+                externalId:
+                    type: string
+                name:
+                    type: string
+                settings:
+                    $ref: '#/components/schemas/asobell.v1.WorkspaceSettings'
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+        asobell.v1.WorkspaceInfo:
+            type: object
+            properties:
+                externalId:
+                    type: string
+                name:
+                    type: string
+        asobell.v1.WorkspaceSettings:
+            type: object
+            properties:
+                recruitChannelId:
+                    type: string
+                timezone:
+                    type: string
+                    description: timezone は IANA TZ 名。
+                defaultReminderPolicy:
+                    $ref: '#/components/schemas/asobell.v1.ReminderPolicy'
+                peekDuration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                autoEndGrace:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                channelNamePrefix:
+                    type: string
+                defaultStartTime:
+                    type: string
+                    description: default_start_time は "HH:MM"。チャット入力で時刻が省略されたときに使う。
+                discord:
+                    $ref: '#/components/schemas/asobell.v1.DiscordWorkspaceSettings'
+        google.protobuf.Any:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        google.rpc.Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/google.protobuf.Any'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+tags:
+    - name: AccountService
+      description: |-
+        AccountService はログインユーザー自身と、チャット ID の連携を扱う。
+         Google ログイン自体(リダイレクトフロー)は gRPC ではなく Manager の HTTP ハンドラ /auth/* が担う。
+    - name: EventService
+      description: |-
+        EventService は WebConsole 向けのイベント操作。grpc-gateway で /api/v1 配下の REST として公開する。
+         認証はセッション Cookie(ゲートウェイが authorization メタデータへ変換)。
+    - name: ProviderStatusService
+      description: ProviderStatusService は対になる Provider の状態を WebConsole に見せる(読み取り専用)。
+    - name: WorkspaceService
+      description: WorkspaceService は WebConsole 向けのワークスペース設定操作。

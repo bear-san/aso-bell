@@ -4,14 +4,14 @@
 
 ## M0. 足場(1 日)
 
-- [ ] `go mod init`、`cmd/manager`, `cmd/provider-slack`, `cmd/provider-discord` の骨組み(`version` のみ)
-- [ ] `proto/asobell/v1/*.proto`(Provider 向け 2 + Console 向け 4 + common)、`buf.yaml`(googleapis / protovalidate 依存)、`buf.gen.yaml`(go / grpc / gateway / openapi)、`buf generate` → `gen/` をコミット。`buf lint` / `buf breaking` を CI に
-- [ ] `Taskfile.yml`、`.golangci.yml`(`depguard` で manager ⇄ provider の import 禁止)、`.editorconfig`、`.gitignore`
-- [ ] `compose.dev.yaml`(MongoDB)
-- [ ] `internal/manager/config`、`internal/provider/config` + テスト
-- [ ] `internal/shared/rpcauth`(Bearer インターセプタ)+ bufconn テスト
-- [ ] `internal/manager/testutil`(FakeClock、testcontainers 起動ヘルパー)
-- [ ] GitHub Actions(`proto`, `go` ジョブ)
+- [x] `go mod init`、`cmd/manager`, `cmd/provider-slack`, `cmd/provider-discord` の骨組み(`version` のみ)
+- [x] `proto/asobell/v1/*.proto`(Provider 向け 2 + Console 向け 4 + common)、`buf.yaml`(googleapis / protovalidate 依存)、`buf.gen.yaml`(go / grpc / gateway / openapi)、`buf generate` → `gen/` をコミット。`buf lint` / `buf breaking` を CI に
+- [x] `Taskfile.yml`、`.golangci.yml`(`depguard` で manager ⇄ provider の import 禁止)、`.editorconfig`、`.gitignore`
+- [x] `compose.dev.yaml`(MongoDB)
+- [x] `internal/manager/config`、`internal/provider/config` + テスト
+- [x] `internal/shared/rpcauth`(Bearer インターセプタ)+ bufconn テスト
+- [x] `internal/manager/testutil`(FakeClock、testcontainers 起動ヘルパー)
+- [x] GitHub Actions(`proto`, `go` ジョブ)
 - 完了条件: `task check` が緑
 
 ## M1. ドメインとストア(2 日)

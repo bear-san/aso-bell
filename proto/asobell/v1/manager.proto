@@ -5,7 +5,7 @@ package asobell.v1;
 import "asobell/v1/common.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+option go_package = "github.com/bear-san/aso-bell/gen/asobell/v1;asobellv1";
 
 // ManagerService は Manager が公開し、対になる 1 つの Provider が呼び出す。
 service ManagerService {

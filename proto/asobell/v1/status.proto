@@ -6,7 +6,7 @@ import "asobell/v1/common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/kentaro/aso-bell/gen/asobell/v1;asobellv1";
+option go_package = "github.com/bear-san/aso-bell/gen/asobell/v1;asobellv1";
 
 // ProviderStatusService は対になる Provider の状態を WebConsole に見せる(読み取り専用)。
 service ProviderStatusService {

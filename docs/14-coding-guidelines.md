@@ -25,7 +25,8 @@ allow := discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | di
 
 ## 2. Go
 
-- Go 1.25。`gofmt` + `goimports` 準拠。`golangci-lint` の設定は `.golangci.yml`(`errcheck`, `govet`, `staticcheck`, `unused`, `gocritic`, `revive`, `errorlint`, `bodyclose`, `contextcheck`, `nilerr`, `testifylint`)
+- Go 1.25。整形は `golangci-lint fmt`(goimports + golines、行長 120)。`.golangci.yml` は [maratori の golden config](https://gist.github.com/maratori/47a4d00457a92aa426dbd48a18776322)(MIT)をベースに、プロジェクト固有の最小限(local-prefixes、manager ⇄ provider の depguard、`gen/` 除外、日本語コメント向けの godot 設定、`version.Version` の例外)だけをカスタマイズする。変更点はファイル冒頭に列挙する
+- テストは外部パッケージ(`package xxx_test`)で書く(`testpackage`)。非公開関数を直接試すときだけ `*_internal_test.go` に内部パッケージテストを置く。`context.Background()` ではなく `t.Context()` を使う(`usetesting`)
 - パッケージ名は小文字単語 1 つ。`util`, `common`, `helper` は禁止
 - エラーは `fmt.Errorf("<動作>: %w", err)` でラップし、文脈を積む。センチネルは `var ErrXxx = errors.New(...)`、判定は `errors.Is` / `errors.As`
 - `context.Context` は第 1 引数。goroutine 起動時は必ず親 ctx から派生させ、タイムアウトを付ける
